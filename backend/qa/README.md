@@ -58,3 +58,16 @@ Orden sugerido de ejecución en Postman:
 Notas:
 - La colección usa Basic Auth (`auth_email`/`auth_password`).
 - `vehicle_document_id`, `document_alert_id` y `notification_id` se guardan automáticamente en variables de entorno.
+
+## 4) Opción C: Runner Newman (automático)
+```bash
+cd backend
+./qa/newman/run_alpha_e2e_newman.sh
+```
+
+Este runner:
+1. prepara data QA,
+2. ejecuta collection por fases,
+3. corre `generate_daily_alerts`,
+4. corre `process_notifications`,
+5. valida reportes al final.
