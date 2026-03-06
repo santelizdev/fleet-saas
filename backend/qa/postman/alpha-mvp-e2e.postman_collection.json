@@ -1,0 +1,208 @@
+{
+  "info": {
+    "name": "Fleet Alpha MVP E2E",
+    "description": "Flujo QA: vehicles CSV -> docs renew -> alerts -> expenses -> reports",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      { "key": "username", "value": "{{auth_email}}", "type": "string" },
+      { "key": "password", "value": "{{auth_password}}", "type": "string" }
+    ]
+  },
+  "item": [
+    {
+      "name": "Phase 1 - Setup",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health/"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": ["pm.test('200', function(){ pm.response.to.have.status(200); });"] }
+          }]
+        },
+        {
+          "name": "Import Vehicles CSV",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"csv_content\": \"plate,brand,model,current_km\\nQA-3001,Toyota,Yaris,1000\\nQA-3002,Kia,Rio,1500\\n\"\n}"
+            },
+            "url": "{{base_url}}/api/vehicles/import-csv/"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('201 import', function(){ pm.response.to.have.status(201); });",
+              "var j = pm.response.json();",
+              "pm.test('created key', function(){ pm.expect(j).to.have.property('created'); });"
+            ] }
+          }]
+        },
+        {
+          "name": "Create Vehicle Document",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicle\": {{vehicle_id}},\n  \"type\": \"seguro\",\n  \"issue_date\": \"{{issue_date}}\",\n  \"expiry_date\": \"{{expiry_date_today}}\",\n  \"reminder_days_before\": 0,\n  \"notes\": \"qa-postman\"\n}"
+            },
+            "url": "{{base_url}}/api/documents/vehicle-documents/"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('201 created', function(){ pm.response.to.have.status(201); });",
+              "var json = pm.response.json();",
+              "pm.environment.set('vehicle_document_id', json.id);"
+            ] }
+          }]
+        },
+        {
+          "name": "Renew Vehicle Document",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"issue_date\": \"{{issue_date}}\",\n  \"expiry_date\": \"{{expiry_date_today}}\",\n  \"notes\": \"renew via postman\"\n}"
+            },
+            "url": "{{base_url}}/api/documents/vehicle-documents/{{vehicle_document_id}}/renew/"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('201 renewed', function(){ pm.response.to.have.status(201); });",
+              "var json = pm.response.json();",
+              "pm.environment.set('renewed_document_id', json.id);"
+            ] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Phase 2 - Alerts & Notifications",
+      "item": [
+        {
+          "name": "List Document Alerts",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/alerts/document-alerts/"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200 list alerts', function(){ pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "var first = Array.isArray(json) ? json[0] : ((json.results || [])[0]);",
+              "if (first) { pm.environment.set('document_alert_id', first.id); }"
+            ] }
+          }]
+        },
+        {
+          "name": "Acknowledge Document Alert",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/alerts/document-alerts/{{document_alert_id}}/acknowledge/"
+          }
+        },
+        {
+          "name": "Resolve Document Alert",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/alerts/document-alerts/{{document_alert_id}}/resolve/"
+          }
+        },
+        {
+          "name": "List Notifications",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/alerts/notifications/"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('200 list notifications', function(){ pm.response.to.have.status(200); });",
+              "var json = pm.response.json();",
+              "var first = Array.isArray(json) ? json[0] : ((json.results || [])[0]);",
+              "if (first) { pm.environment.set('notification_id', first.id); }"
+            ] }
+          }]
+        }
+      ]
+    },
+    {
+      "name": "Phase 3 - Expenses",
+      "item": [
+        {
+          "name": "Create Vehicle Expense",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicle\": {{vehicle_id}},\n  \"amount_clp\": 120000,\n  \"expense_date\": \"{{issue_date}}\",\n  \"supplier\": \"Copec\",\n  \"km\": 1234,\n  \"invoice_number\": \"QA-POSTMAN-001\"\n}"
+            },
+            "url": "{{base_url}}/api/expenses/vehicle-expenses/"
+          },
+          "event": [{
+            "listen": "test",
+            "script": { "type": "text/javascript", "exec": [
+              "pm.test('201 expense created', function(){ pm.response.to.have.status(201); });",
+              "var json = pm.response.json();",
+              "pm.environment.set('vehicle_expense_id', json.id);"
+            ] }
+          }]
+        },
+        {
+          "name": "Approve Expense",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/expenses/vehicle-expenses/{{vehicle_expense_id}}/approve/"
+          }
+        },
+        {
+          "name": "Pay Expense",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/expenses/vehicle-expenses/{{vehicle_expense_id}}/pay/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 4 - Reports",
+      "item": [
+        {
+          "name": "Report Dashboard",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/reports/dashboard/"
+          }
+        },
+        {
+          "name": "Report Vehicle Costs",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/reports/vehicle-costs/"
+          }
+        },
+        {
+          "name": "Report Vehicle Costs CSV",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/reports/vehicle-costs/export.csv"
+          }
+        }
+      ]
+    }
+  ]
+}
