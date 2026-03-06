@@ -31,12 +31,18 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
 
-        # `createsuperuser` entrega FK como `company`; otros flujos suelen usar `company_id`.
-        company_ref = extra_fields.get("company") or extra_fields.get("company_id")
-        if company_ref is None:
+        company_ref = extra_fields.pop("company", None)
+        if company_ref is not None and extra_fields.get("company_id") is None:
+            if hasattr(company_ref, "id"):
+                extra_fields["company_id"] = company_ref.id
+            else:
+                extra_fields["company_id"] = int(company_ref)
+
+        if extra_fields.get("company_id") is None:
             raise ValueError("Superuser requiere company en este MVP.")
 
         return self.create_user(email=email, password=password, **extra_fields)
+
 
 
 class User(AbstractBaseUser, PermissionsMixin):
