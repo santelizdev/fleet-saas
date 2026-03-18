@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -78,6 +79,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         ]
 
     def __str__(self) -> str:
+        if self.name:
+            return self.name
         return self.email
 
 
@@ -178,3 +181,11 @@ class UserRole(models.Model):
             models.Index(fields=["user"]),
             models.Index(fields=["role"]),
         ]
+
+    def clean(self):
+        if self.user_id and self.role_id and self.user.company_id != self.role.company_id:
+            raise ValidationError("User y Role deben pertenecer a la misma company.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)

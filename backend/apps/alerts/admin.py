@@ -9,7 +9,7 @@ from .models import DocumentAlert, JobRun, MaintenanceAlert, Notification
 class DocumentAlertAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
     list_display = ("id", "company", "kind", "state", "scheduled_for", "due_date", "created_at")
     list_filter = ("company", "kind", "state")
-    search_fields = ("message",)
+    search_fields = ("message", "vehicle_document__vehicle__assigned_driver__name", "driver_license__driver__name")
     form_company_filters = {
         "company": "id",
         "vehicle_document": "company_id",

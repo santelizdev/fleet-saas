@@ -9,13 +9,13 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "0") == "1"
 ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "").split(",")
 CSRF_TRUSTED_ORIGINS = [v for v in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",") if v]
 
+DATABASES = {
+  "default": dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=60),
+}
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
-DATABASES = {
-  "default": dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=60),
-}
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -79,7 +79,6 @@ LOGGING = {
         "level": "INFO",
     },
 }
-
 CACHES = {
     "default": {
         "BACKEND": "django.core.cache.backends.locmem.LocMemCache",

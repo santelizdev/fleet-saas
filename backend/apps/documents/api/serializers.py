@@ -1,3 +1,4 @@
+from django.db import transaction
 from rest_framework import serializers
 
 from apps.documents.models import (
@@ -7,9 +8,16 @@ from apps.documents.models import (
     VehicleDocument,
     VehicleDocumentAttachment,
 )
+from apps.documents.services import (
+    replace_driver_license_attachment,
+    replace_vehicle_document_attachment,
+    validate_support_image,
+)
 
 
 class AttachmentSerializer(serializers.ModelSerializer):
+    file_url = serializers.CharField(read_only=True)
+
     class Meta:
         model = Attachment
         fields = [
@@ -20,12 +28,16 @@ class AttachmentSerializer(serializers.ModelSerializer):
             "size_bytes",
             "mime_type",
             "sha256",
+            "file_url",
             "created_at",
         ]
         read_only_fields = ["id", "company", "created_at"]
 
 
 class VehicleDocumentSerializer(serializers.ModelSerializer):
+    support_image = serializers.ImageField(write_only=True, required=False, allow_null=True)
+    support_attachment = AttachmentSerializer(read_only=True)
+
     class Meta:
         model = VehicleDocument
         fields = [
@@ -38,18 +50,62 @@ class VehicleDocumentSerializer(serializers.ModelSerializer):
             "reminder_days_before",
             "status",
             "notes",
-            "previous_version",
             "is_current",
             "created_by",
+            "support_attachment",
+            "support_image",
             "created_at",
         ]
         read_only_fields = ["id", "company", "status", "is_current", "created_by", "created_at"]
+
+    def validate_support_image(self, value):
+        try:
+            validate_support_image(value)
+        except Exception as exc:
+            raise serializers.ValidationError(str(exc)) from exc
+        return value
+
+    def create(self, validated_data):
+        support_image = validated_data.pop("support_image", None)
+        with transaction.atomic():
+            instance = super().create(validated_data)
+            if support_image:
+                request = self.context.get("request")
+                replace_vehicle_document_attachment(
+                    document=instance,
+                    uploaded_file=support_image,
+                    actor_id=request.user.id if request else None,
+                )
+            return instance
+
+    def update(self, instance, validated_data):
+        support_image = validated_data.pop("support_image", None)
+        with transaction.atomic():
+            instance = super().update(instance, validated_data)
+            if support_image:
+                request = self.context.get("request")
+                replace_vehicle_document_attachment(
+                    document=instance,
+                    uploaded_file=support_image,
+                    actor_id=request.user.id if request else None,
+                )
+            return instance
 
 
 class VehicleDocumentRenewSerializer(serializers.Serializer):
     issue_date = serializers.DateField()
     expiry_date = serializers.DateField()
     notes = serializers.CharField(required=False, allow_blank=True, default="")
+    support_image = serializers.ImageField(required=False, allow_null=True)
+
+    def validate_support_image(self, value):
+        if value is None:
+            return value
+        try:
+            validate_support_image(value)
+        except Exception as exc:
+            raise serializers.ValidationError(str(exc)) from exc
+        return value
 
 
 class VehicleDocumentAttachmentSerializer(serializers.ModelSerializer):
@@ -60,6 +116,9 @@ class VehicleDocumentAttachmentSerializer(serializers.ModelSerializer):
 
 
 class DriverLicenseSerializer(serializers.ModelSerializer):
+    support_image = serializers.ImageField(write_only=True, required=False, allow_null=True)
+    support_attachment = AttachmentSerializer(read_only=True)
+
     class Meta:
         model = DriverLicense
         fields = [
@@ -72,17 +131,61 @@ class DriverLicenseSerializer(serializers.ModelSerializer):
             "expiry_date",
             "reminder_days_before",
             "status",
-            "previous_version",
             "is_current",
             "created_by",
+            "support_attachment",
+            "support_image",
             "created_at",
         ]
         read_only_fields = ["id", "company", "status", "is_current", "created_by", "created_at"]
+
+    def validate_support_image(self, value):
+        try:
+            validate_support_image(value)
+        except Exception as exc:
+            raise serializers.ValidationError(str(exc)) from exc
+        return value
+
+    def create(self, validated_data):
+        support_image = validated_data.pop("support_image", None)
+        with transaction.atomic():
+            instance = super().create(validated_data)
+            if support_image:
+                request = self.context.get("request")
+                replace_driver_license_attachment(
+                    license_doc=instance,
+                    uploaded_file=support_image,
+                    actor_id=request.user.id if request else None,
+                )
+            return instance
+
+    def update(self, instance, validated_data):
+        support_image = validated_data.pop("support_image", None)
+        with transaction.atomic():
+            instance = super().update(instance, validated_data)
+            if support_image:
+                request = self.context.get("request")
+                replace_driver_license_attachment(
+                    license_doc=instance,
+                    uploaded_file=support_image,
+                    actor_id=request.user.id if request else None,
+                )
+            return instance
 
 
 class DriverLicenseRenewSerializer(serializers.Serializer):
     issue_date = serializers.DateField()
     expiry_date = serializers.DateField()
+    support_image = serializers.ImageField(required=False, allow_null=True)
+
+    def validate_support_image(self, value):
+        if value is None:
+            return value
+        try:
+            validate_support_image(value)
+        except Exception as exc:
+            raise serializers.ValidationError(str(exc)) from exc
+        return value
 
 
 class DriverLicenseAttachmentSerializer(serializers.ModelSerializer):

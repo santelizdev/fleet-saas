@@ -1,17 +1,21 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
 
-from .models import User, Role, Capability, RoleCapability, UserRole
 from config.admin_scoping import CompanyScopedAdminMixin
+
+from .forms import UserAdminChangeForm, UserAdminCreationForm
+from .models import Capability, Role, RoleCapability, User, UserRole
 
 
 @admin.register(User)
 class UserAdmin(CompanyScopedAdminMixin, DjangoUserAdmin):
     """
     Admin para el user custom.
-    Importante: configuramos fields y list_display para que sea operable.
+    Importante: configuramos forms explícitos para creación/cambio de password.
     """
 
+    form = UserAdminChangeForm
+    add_form = UserAdminCreationForm
     ordering = ("email",)
     list_display = ("id", "email", "name", "company", "is_active", "is_staff", "created_at")
     search_fields = ("email", "name")
@@ -25,7 +29,13 @@ class UserAdmin(CompanyScopedAdminMixin, DjangoUserAdmin):
     )
 
     add_fieldsets = (
-        (None, {"fields": ("email", "name", "phone", "company", "password1", "password2")}),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("email", "name", "phone", "company", "is_active", "is_staff", "password1", "password2"),
+            },
+        ),
     )
 
     readonly_fields = ("created_at",)

@@ -27,6 +27,11 @@ ROLE_CAPS = {
         "doc.read",
         "expense.report",
     ],
+    "Piloto": [
+        "vehicle.read",
+        "doc.read",
+        "expense.report",
+    ],
     "FleetManager": [
         "vehicle.read",
         "vehicle.manage",

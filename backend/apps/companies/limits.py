@@ -57,7 +57,13 @@ def _audit_limit_breach(company_id: int, actor_id: int | None, action: str, deta
     )
 
 
-def enforce_upload_limits(*, company_id: int, actor_id: int | None = None):
+def enforce_upload_limits(
+    *,
+    company_id: int,
+    actor_id: int | None = None,
+    incoming_size_bytes: int = 0,
+    replacing_size_bytes: int = 0,
+):
     limits = get_effective_limits(company_id)
     today = timezone.localdate()
 
@@ -72,13 +78,19 @@ def enforce_upload_limits(*, company_id: int, actor_id: int | None = None):
         raise PermissionDenied("Límite diario de uploads excedido para tu plan.")
 
     used_bytes = Attachment.objects.filter(company_id=company_id).aggregate(total=Sum("size_bytes"))["total"] or 0
-    used_mb = used_bytes / (1024 * 1024)
+    projected_bytes = max(used_bytes - replacing_size_bytes, 0) + incoming_size_bytes
+    used_mb = projected_bytes / (1024 * 1024)
     if used_mb >= limits.max_storage_mb:
         _audit_limit_breach(
             company_id,
             actor_id,
             "limit.storage.exceeded",
-            {"used_mb": round(used_mb, 2), "max_storage_mb": limits.max_storage_mb},
+            {
+                "used_mb": round(used_mb, 2),
+                "max_storage_mb": limits.max_storage_mb,
+                "incoming_size_bytes": incoming_size_bytes,
+                "replacing_size_bytes": replacing_size_bytes,
+            },
         )
         raise PermissionDenied("Límite de almacenamiento excedido para tu plan.")
 

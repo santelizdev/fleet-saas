@@ -1,3 +1,6 @@
+from django.test import Client
+from django.urls import reverse
+
 from django.contrib.admin.sites import AdminSite
 from django.test import RequestFactory, TestCase
 
@@ -10,6 +13,7 @@ from apps.vehicles.models import Vehicle
 class MultiempresaAdminIsolationTest(TestCase):
     def setUp(self):
         self.factory = RequestFactory()
+        self.client = Client()
         self.site = AdminSite()
 
         self.company_a = Company.objects.create(name="Company A", rut="11.111.111-1")
@@ -21,6 +25,19 @@ class MultiempresaAdminIsolationTest(TestCase):
             name="Staff A",
             company=self.company_a,
             is_staff=True,
+        )
+        self.staff_b = User.objects.create_user(
+            email="staff-b@local.dev",
+            password="Secret123!",
+            name="Staff B",
+            company=self.company_b,
+            is_staff=True,
+        )
+        self.superuser = User.objects.create_superuser(
+            email="admin@local.dev",
+            password="Secret123!",
+            name="Admin",
+            company=self.company_a,
         )
 
         Vehicle.objects.create(company=self.company_a, plate="AA11AA")
@@ -34,3 +51,15 @@ class MultiempresaAdminIsolationTest(TestCase):
         company_ids = list(admin_view.get_queryset(request).values_list("company_id", flat=True))
 
         self.assertEqual(company_ids, [self.company_a.id])
+
+    def test_assigned_driver_options_are_filtered_by_selected_company(self):
+        self.client.force_login(self.superuser)
+        response = self.client.get(
+            reverse("admin:vehicles_vehicle_company_options"),
+            {"field": "assigned_driver", "company_id": self.company_a.id},
+        )
+
+        self.assertEqual(response.status_code, 200)
+        options = response.json()["options"]
+        labels = [option["label"] for option in options]
+        self.assertEqual(labels, ["Staff A"])

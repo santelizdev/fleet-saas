@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.core.files.storage import default_storage
 from django.db import models, transaction
 
 from apps.accounts.models import User
@@ -27,17 +28,28 @@ class Attachment(models.Model):
     def __str__(self) -> str:
         return f"{self.company_id}:{self.storage_key}"
 
+    @property
+    def file_url(self) -> str:
+        if not self.storage_key:
+            return ""
+        return default_storage.url(self.storage_key)
+
 
 class VehicleDocument(models.Model):
     TYPE_PERMISO_CIRCULACION = "permiso_circulacion"
     TYPE_REVISION_TECNICA = "revision_tecnica"
+    TYPE_TECNOMECANICA = "tecnomecanica"
     TYPE_SEGURO = "seguro"
+    TYPE_SOAP = TYPE_SEGURO
+    TYPE_GASES = "gases"
     TYPE_OTRO = "otro"
 
     TYPE_CHOICES = [
         (TYPE_PERMISO_CIRCULACION, "Permiso de circulacion"),
         (TYPE_REVISION_TECNICA, "Revision tecnica"),
-        (TYPE_SEGURO, "Seguro"),
+        (TYPE_TECNOMECANICA, "Tecnomecanica"),
+        (TYPE_SEGURO, "SOAP"),
+        (TYPE_GASES, "Gases"),
         (TYPE_OTRO, "Otro"),
     ]
 
@@ -84,12 +96,14 @@ class VehicleDocument(models.Model):
         ]
 
     def clean(self):
-        if self.expiry_date <= self.issue_date:
+        if self.issue_date and self.expiry_date and self.expiry_date <= self.issue_date:
             raise ValidationError("expiry_date debe ser mayor que issue_date.")
 
         if self.vehicle_id and self.company_id and self.vehicle.company_id != self.company_id:
             raise ValidationError("Vehicle y Document deben pertenecer a la misma company.")
 
+        if self.created_by_id and self.company_id and self.created_by.company_id != self.company_id:
+            raise ValidationError("created_by debe pertenecer a la misma company.")
         if self.previous_version_id:
             prev = self.previous_version
             if prev.company_id != self.company_id:
@@ -127,7 +141,13 @@ class VehicleDocument(models.Model):
         )
 
     def __str__(self) -> str:
-        return f"{self.vehicle_id}:{self.type}:{self.expiry_date}"
+        driver_name = self.vehicle.assigned_driver.name if self.vehicle.assigned_driver_id and self.vehicle.assigned_driver.name else "Sin piloto"
+        return f"{self.vehicle.plate} - {self.get_type_display()} - {driver_name}"
+
+    @property
+    def support_attachment(self) -> Attachment | None:
+        link = self.attachment_links.select_related("attachment").order_by("-id").first()
+        return link.attachment if link else None
 
 
 class VehicleDocumentAttachment(models.Model):
@@ -211,10 +231,13 @@ class DriverLicense(models.Model):
         ]
 
     def clean(self):
-        if self.expiry_date <= self.issue_date:
+        if self.issue_date and self.expiry_date and self.expiry_date <= self.issue_date:
             raise ValidationError("expiry_date debe ser mayor que issue_date.")
         if self.driver_id and self.company_id and self.driver.company_id != self.company_id:
             raise ValidationError("Driver y DriverLicense deben pertenecer a la misma company.")
+        if self.created_by_id and self.company_id and self.created_by.company_id != self.company_id:
+            raise ValidationError("created_by debe pertenecer a la misma company.")
+
         if self.previous_version_id:
             prev = self.previous_version
             if prev.company_id != self.company_id:
@@ -248,6 +271,15 @@ class DriverLicense(models.Model):
             is_current=True,
             created_by=created_by,
         )
+
+
+    def __str__(self) -> str:
+        return f"{self.driver.name} - {self.license_number}"
+
+    @property
+    def support_attachment(self) -> Attachment | None:
+        link = self.attachment_links.select_related("attachment").order_by("-id").first()
+        return link.attachment if link else None
 
 
 class DriverLicenseAttachment(models.Model):

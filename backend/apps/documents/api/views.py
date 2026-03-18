@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from django.db import transaction
 
 from apps.accounts.permissions import HasCapability
 from apps.companies.limits import enforce_upload_limits
@@ -14,6 +15,7 @@ from apps.documents.models import (
     VehicleDocumentAttachment,
 )
 from apps.product_analytics.events import track_event
+from apps.documents.services import replace_driver_license_attachment, replace_vehicle_document_attachment
 
 from .serializers import (
     AttachmentSerializer,
@@ -83,12 +85,16 @@ class VehicleDocumentViewSet(CapabilityScopedViewSet):
         instance = self.get_object()
         serializer = VehicleDocumentRenewSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        renewed = instance.renew(
-            issue_date=serializer.validated_data["issue_date"],
-            expiry_date=serializer.validated_data["expiry_date"],
-            notes=serializer.validated_data.get("notes", ""),
-            created_by=request.user,
-        )
+        with transaction.atomic():
+            renewed = instance.renew(
+                issue_date=serializer.validated_data["issue_date"],
+                expiry_date=serializer.validated_data["expiry_date"],
+                notes=serializer.validated_data.get("notes", ""),
+                created_by=request.user,
+            )
+            support_image = serializer.validated_data.get("support_image")
+            if support_image:
+                replace_vehicle_document_attachment(document=renewed, uploaded_file=support_image, actor_id=request.user.id)
         track_event(
             company_id=instance.company_id,
             actor_id=request.user.id,
@@ -108,9 +114,9 @@ class VehicleDocumentViewSet(CapabilityScopedViewSet):
         company_id = self._request_company_id()
         doc_types = [
             VehicleDocument.TYPE_PERMISO_CIRCULACION,
-            VehicleDocument.TYPE_REVISION_TECNICA,
+            VehicleDocument.TYPE_TECNOMECANICA,
             VehicleDocument.TYPE_SEGURO,
-            VehicleDocument.TYPE_OTRO,
+            VehicleDocument.TYPE_GASES,
         ]
         created_ids = []
         for doc_type in doc_types:
@@ -157,11 +163,15 @@ class DriverLicenseViewSet(CapabilityScopedViewSet):
         instance = self.get_object()
         serializer = DriverLicenseRenewSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        renewed = instance.renew(
-            issue_date=serializer.validated_data["issue_date"],
-            expiry_date=serializer.validated_data["expiry_date"],
-            created_by=request.user,
-        )
+        with transaction.atomic():
+            renewed = instance.renew(
+                issue_date=serializer.validated_data["issue_date"],
+                expiry_date=serializer.validated_data["expiry_date"],
+                created_by=request.user,
+            )
+            support_image = serializer.validated_data.get("support_image")
+            if support_image:
+                replace_driver_license_attachment(license_doc=renewed, uploaded_file=support_image, actor_id=request.user.id)
         return Response(self.get_serializer(renewed).data, status=status.HTTP_201_CREATED)
 
 

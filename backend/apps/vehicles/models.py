@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 
 from apps.companies.models import Company, Branch
@@ -66,6 +67,15 @@ class Vehicle(models.Model):
             models.Index(fields=["company", "status"]),
         ]
 
+    def clean(self):
+        if self.assigned_driver_id and self.company_id and self.assigned_driver.company_id != self.company_id:
+            raise ValidationError("assigned_driver debe pertenecer a la misma company.")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        return super().save(*args, **kwargs)
+
     def __str__(self) -> str:
-        return f"{self.company_id} - {self.plate}"
+        driver_name = self.assigned_driver.name if self.assigned_driver_id and self.assigned_driver.name else "Sin piloto"
+        return f"{self.plate} - {driver_name}"
     

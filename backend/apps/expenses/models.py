@@ -63,6 +63,8 @@ class VehicleExpense(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        verbose_name = "Gasto de vehículo"
+        verbose_name_plural = "Gastos de vehículo"
         indexes = [
             models.Index(fields=["company", "vehicle", "expense_date"]),
             models.Index(fields=["company", "approval_status", "payment_status"]),
@@ -73,12 +75,23 @@ class VehicleExpense(models.Model):
             raise ValidationError("Vehicle y Expense deben pertenecer a la misma company.")
         if self.category_id and self.company_id and self.category.company_id != self.company_id:
             raise ValidationError("Category y Expense deben pertenecer a la misma company.")
+        if self.reported_by_id and self.company_id and self.reported_by.company_id != self.company_id:
+            raise ValidationError("reported_by debe pertenecer a la misma company.")
+        if self.approved_by_id and self.company_id and self.approved_by.company_id != self.company_id:
+            raise ValidationError("approved_by debe pertenecer a la misma company.")
+        if self.paid_by_id and self.company_id and self.paid_by.company_id != self.company_id:
+            raise ValidationError("paid_by debe pertenecer a la misma company.")
         if self.payment_status == self.PAYMENT_PAID and self.approval_status != self.APPROVAL_APPROVED:
             raise ValidationError("Solo se puede pagar un gasto aprobado.")
 
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
+
+    @property
+    def support_attachment(self) -> Attachment | None:
+        link = self.attachment_links.select_related("attachment").order_by("-id").first()
+        return link.attachment if link else None
 
 
 class VehicleExpenseAttachment(models.Model):
