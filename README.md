@@ -37,7 +37,7 @@ Alpha funcional con base para pilotos (3-5 empresas), incluyendo:
 - `redis` (Redis)
 
 Puertos por defecto:
-- App: `http://localhost:8000`
+- App: `http://localhost:18100`
 - Postgres host: `5542`
 - Redis host: `6380`
 
@@ -197,8 +197,8 @@ docker compose run --rm web python manage.py check
 ```
 
 Verificar:
-- `http://localhost:8000/health/`
-- `http://localhost:8000/admin/`
+- `http://localhost:18100/health/`
+- `http://localhost:18100/admin/`
 
 ## QA / testing
 
