@@ -1,0 +1,58 @@
+{% load static %}
+{# Cards KPI para la portada operacional del admin. #}
+<div class="fleet-grid fleet-grid-top">
+  <section class="fleet-card fleet-welcome-card">
+    <div class="fleet-welcome-copy">
+      <div>
+        <p class="fleet-eyebrow">RutaCore Control Center</p>
+        <h1>Dashboard analitico</h1>
+        <p class="fleet-hero-copy">Operacion, vencimientos, gasto, alertas y TAG condensados en una sola vista para {{ dashboard_filters.month_label }}.</p>
+      </div>
+
+      <div class="fleet-header-meta">
+        <span class="fleet-badge fleet-badge-info">Hoy: {{ dashboard_filters.today }}</span>
+        <span class="fleet-badge fleet-badge-warning">Ventana de alerta: hasta {{ dashboard_filters.window_end }}</span>
+      </div>
+
+      <div class="fleet-highlight-grid">
+        {% for item in dashboard_operational_highlights %}
+        <article class="fleet-highlight-card">
+          <span class="fleet-mini-label">{{ item.label }}</span>
+          <strong>{{ item.value_display }}</strong>
+          <p>{{ item.note }}</p>
+        </article>
+        {% endfor %}
+      </div>
+
+      <div class="fleet-quick-actions">
+        <a href="{% url 'admin:vehicles_vehicle_changelist' %}">Ver flota</a>
+        <a href="{% url 'admin:documents_vehicledocument_changelist' %}">Documentos</a>
+        <a href="{% url 'admin:maintenance_maintenancerecord_changelist' %}">Plan mantencion</a>
+        <a href="{% url 'admin:tags_tagcharge_analytics' %}">Resumen TAG</a>
+      </div>
+    </div>
+
+    <div class="fleet-welcome-art">
+      <img src="{% static 'admin/branding/rutacore-icon.svg' %}" alt="RutaCore" class="fleet-brand-mark" />
+      <div class="fleet-welcome-badge">
+        <span class="fleet-mini-label">Pulso operacional</span>
+        <strong>{{ dashboard_focus_card.score_display }}</strong>
+      </div>
+    </div>
+  </section>
+
+  <div class="fleet-kpi-grid fleet-kpi-grid-compact">
+    {% for item in dashboard_kpi_cards %}
+    <article class="fleet-card fleet-mini-kpi fleet-kpi-card-{{ item.tone }}">
+      <div class="fleet-kpi-icon">
+        <span class="material-symbols-outlined">{{ item.icon }}</span>
+      </div>
+      <div>
+        <span class="fleet-kpi-label">{{ item.label }}</span>
+        <strong class="fleet-kpi-value">{{ item.value_display }}</strong>
+        <p class="fleet-kpi-note">{{ item.note }}</p>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+</div>

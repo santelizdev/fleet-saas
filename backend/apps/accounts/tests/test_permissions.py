@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.core.exceptions import ValidationError
 
 from apps.accounts.models import Capability, Role, RoleCapability, User, UserRole
 from apps.accounts.permissions import user_has_capability
@@ -22,7 +23,8 @@ class CapabilityPermissionTest(TestCase):
 
         role_b = Role.objects.create(company=self.company_b, name="FleetManager")
         RoleCapability.objects.create(role=role_b, capability=cap)
-        UserRole.objects.create(user=self.user_a, role=role_b)
+        with self.assertRaises(ValidationError):
+            UserRole.objects.create(user=self.user_a, role=role_b)
 
         self.assertFalse(
             user_has_capability(self.user_a, "vehicle.read"),

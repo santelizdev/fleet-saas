@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="rutacoreIconTitle">
+  <title id="rutacoreIconTitle">RutaCore</title>
+  <circle cx="64" cy="64" r="61" fill="#F97316"/>
+  <circle cx="64" cy="64" r="55" fill="#1D2E53"/>
+  <path d="M36 68 51 44l14-11 15 12 17 1 8 12-6 18H29l-4-10Z" fill="#fff" opacity=".18"/>
+  <path d="m35 64 14-22 14-11 13 11 16 1 9 13" fill="none" stroke="#F97316" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/>
+  <path d="m91 44 0 16m0-16-14 0" fill="none" stroke="#F97316" stroke-linecap="round" stroke-linejoin="round" stroke-width="8"/>
+  <path d="M35 78h58a6 6 0 0 0 6-6v-11a10 10 0 0 0-10-10H39A10 10 0 0 0 29 61v11a6 6 0 0 0 6 6Z" fill="none" stroke="#fff" stroke-linejoin="round" stroke-width="7"/>
+  <path d="m48 57 8-6h16l8 6" fill="none" stroke="#D6D8DB" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+  <path d="M45 67h10m18 0h10" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="6"/>
+  <circle cx="38" cy="75" r="3.5" fill="#fff"/>
+  <circle cx="90" cy="75" r="3.5" fill="#fff"/>
+  <path d="M88 25a15 15 0 1 0 16 23l7 8 3-3-7-8a15 15 0 0 0-19-20Z" fill="#fff"/>
+  <path d="M89 31a9 9 0 1 0 10 14l4 5 2-2-4-5a9 9 0 0 0-12-12Z" fill="#1D2E53"/>
+  <circle cx="95" cy="38" r="5" fill="#F97316"/>
+  <circle cx="113" cy="28" r="4" fill="#F97316"/>
+</svg>

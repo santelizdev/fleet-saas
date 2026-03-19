@@ -1,6 +1,12 @@
+"""Admin documental mejorado para operación con badges y previews."""
+
+from __future__ import annotations
+
 from django.contrib import admin
 from django.db import transaction
 from django.utils.html import format_html
+from unfold.admin import ModelAdmin
+from unfold.decorators import display
 
 from config.admin_scoping import CompanyScopedAdminMixin
 
@@ -10,6 +16,8 @@ from .services import replace_driver_license_attachment, replace_vehicle_documen
 
 
 class InternalAttachmentAdminMixin:
+    """Oculta modelos técnicos de adjuntos del menú lateral principal."""
+
     def has_module_permission(self, request):
         return False
 
@@ -18,7 +26,7 @@ class InternalAttachmentAdminMixin:
 
 
 @admin.register(Attachment)
-class AttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, admin.ModelAdmin):
+class AttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, ModelAdmin):
     list_display = ("id", "company", "storage_key", "mime_type", "size_bytes", "created_at")
     search_fields = ("storage_key", "original_name", "mime_type")
     list_filter = ("company", "mime_type")
@@ -26,17 +34,20 @@ class AttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, adm
 
 
 @admin.register(VehicleDocument)
-class VehicleDocumentAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+class VehicleDocumentAdmin(CompanyScopedAdminMixin, ModelAdmin):
+    """Organiza documentos del vehículo con foco en vencimientos."""
+
     form = VehicleDocumentAdminForm
-    list_display = ("id", "company", "vehicle", "type", "status", "is_current", "expiry_date")
-    list_filter = ("company", "type", "status", "is_current")
-    search_fields = ("vehicle__plate", "vehicle__assigned_driver__name", "type")
+    list_display = ("vehicle", "type", "status_badge", "is_current_badge", "expiry_date", "support_preview_link")
+    list_filter = ("company", "type", "status", "is_current", "expiry_date")
+    search_fields = ("vehicle__plate", "vehicle__assigned_driver__name", "type", "notes")
+    list_select_related = ("company", "vehicle", "vehicle__assigned_driver")
+    ordering = ("expiry_date",)
     fields = (
         "company",
         "vehicle",
         "type",
-        "issue_date",
-        "expiry_date",
+        ("issue_date", "expiry_date"),
         "reminder_days_before",
         "support_image",
         "support_image_preview",
@@ -47,6 +58,28 @@ class VehicleDocumentAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
         "company": "id",
         "vehicle": "company_id",
     }
+
+    @display(
+        description="Estado",
+        ordering="status",
+        label={
+            VehicleDocument.STATUS_ACTIVE: "success",
+            VehicleDocument.STATUS_REPLACED: "info",
+            VehicleDocument.STATUS_EXPIRED: "danger",
+        },
+    )
+    def status_badge(self, obj):
+        return obj.status, obj.get_status_display()
+
+    @display(description="Actual")
+    def is_current_badge(self, obj):
+        tone = "success" if obj.is_current else "info"
+        label = "Sí" if obj.is_current else "Histórico"
+        return format_html('<span class="fleet-badge fleet-badge-{}">{}</span>', tone, label)
+
+    @display(description="Soporte")
+    def support_preview_link(self, obj):
+        return "Disponible" if obj.support_attachment else "Sin adjunto"
 
     def save_model(self, request, obj, form, change):
         if not request.user.is_superuser:
@@ -63,13 +96,13 @@ class VehicleDocumentAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
         attachment = getattr(obj, "support_attachment", None)
         if not attachment or not attachment.file_url:
             return "Sin imagen"
-        return format_html('<img src="{}" style="max-width: 240px; max-height: 240px;" />', attachment.file_url)
+        return format_html('<img src="{}" style="max-width: 240px; max-height: 240px; border-radius: 12px;" />', attachment.file_url)
 
     support_image_preview.short_description = "Imagen actual"
 
 
 @admin.register(VehicleDocumentAttachment)
-class VehicleDocumentAttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, admin.ModelAdmin):
+class VehicleDocumentAttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, ModelAdmin):
     list_display = ("id", "company", "vehicle_document", "attachment", "created_at")
     list_filter = ("company",)
     fields = ("company", "vehicle_document", "attachment")
@@ -87,18 +120,21 @@ class VehicleDocumentAttachmentAdmin(InternalAttachmentAdminMixin, CompanyScoped
 
 
 @admin.register(DriverLicense)
-class DriverLicenseAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
+class DriverLicenseAdmin(CompanyScopedAdminMixin, ModelAdmin):
+    """Agrupa licencias por vigencia y conductor."""
+
     form = DriverLicenseAdminForm
-    list_display = ("id", "company", "driver", "license_number", "status", "is_current", "expiry_date")
-    list_filter = ("company", "status", "is_current")
-    search_fields = ("driver__name", "driver__email", "license_number")
+    list_display = ("driver", "license_number", "status_badge", "is_current_badge", "expiry_date", "support_preview_link")
+    list_filter = ("company", "status", "is_current", "expiry_date")
+    search_fields = ("driver__name", "driver__email", "license_number", "category")
+    list_select_related = ("company", "driver")
+    ordering = ("expiry_date",)
     fields = (
         "company",
         "driver",
         "license_number",
         "category",
-        "issue_date",
-        "expiry_date",
+        ("issue_date", "expiry_date"),
         "reminder_days_before",
         "support_image",
         "support_image_preview",
@@ -108,6 +144,28 @@ class DriverLicenseAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
         "company": "id",
         "driver": "company_id",
     }
+
+    @display(
+        description="Estado",
+        ordering="status",
+        label={
+            DriverLicense.STATUS_ACTIVE: "success",
+            DriverLicense.STATUS_REPLACED: "info",
+            DriverLicense.STATUS_EXPIRED: "danger",
+        },
+    )
+    def status_badge(self, obj):
+        return obj.status, obj.get_status_display()
+
+    @display(description="Actual")
+    def is_current_badge(self, obj):
+        tone = "success" if obj.is_current else "info"
+        label = "Sí" if obj.is_current else "Histórico"
+        return format_html('<span class="fleet-badge fleet-badge-{}">{}</span>', tone, label)
+
+    @display(description="Soporte")
+    def support_preview_link(self, obj):
+        return "Disponible" if obj.support_attachment else "Sin adjunto"
 
     def save_model(self, request, obj, form, change):
         if not request.user.is_superuser:
@@ -124,13 +182,13 @@ class DriverLicenseAdmin(CompanyScopedAdminMixin, admin.ModelAdmin):
         attachment = getattr(obj, "support_attachment", None)
         if not attachment or not attachment.file_url:
             return "Sin imagen"
-        return format_html('<img src="{}" style="max-width: 240px; max-height: 240px;" />', attachment.file_url)
+        return format_html('<img src="{}" style="max-width: 240px; max-height: 240px; border-radius: 12px;" />', attachment.file_url)
 
     support_image_preview.short_description = "Imagen actual"
 
 
 @admin.register(DriverLicenseAttachment)
-class DriverLicenseAttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, admin.ModelAdmin):
+class DriverLicenseAttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, ModelAdmin):
     list_display = ("id", "company", "driver_license", "attachment", "created_at")
     list_filter = ("company",)
     form_company_filters = {

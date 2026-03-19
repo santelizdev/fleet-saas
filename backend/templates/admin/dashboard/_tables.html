@@ -1,0 +1,138 @@
+{% load humanize %}
+{# Bloque principal con gastos, vencimientos y TAG. #}
+<div class="fleet-stack">
+  <section class="fleet-card fleet-section fleet-finance-card">
+    <div class="fleet-section-header">
+      <div>
+        <h2>Resumen financiero del periodo</h2>
+        <p class="fleet-section-subtitle">Lectura mensual inspirada en Sneat, aterrizada a flota, categorias y vehiculos.</p>
+      </div>
+      <a href="{% url 'admin:expenses_vehicleexpense_changelist' %}">Ver gastos</a>
+    </div>
+
+    <div class="fleet-grid fleet-grid-insights">
+      <div class="fleet-finance-block">
+        <div class="fleet-panel-heading">
+          <strong>Mix de gasto</strong>
+          <span>por categoria</span>
+        </div>
+        <div class="fleet-bar-list">
+          {% for item in dashboard_spend_by_category %}
+          <article class="fleet-bar-row">
+            <div class="fleet-bar-copy">
+              <strong>{{ item.label|default:"Sin categoría" }}</strong>
+              <span>{{ item.total_items }} movimientos</span>
+            </div>
+            <div class="fleet-bar-track">
+              <span class="fleet-bar-fill" style="--fleet-bar-width: {{ item.bar_width }}%; --fleet-bar-color: {{ item.accent }};"></span>
+            </div>
+            <div class="fleet-bar-meta">
+              <strong>{{ item.value_display }}</strong>
+              <span>{{ item.share_percent }}%</span>
+            </div>
+          </article>
+          {% empty %}
+          <p class="fleet-empty-state">Aún no hay gasto cargado en el período.</p>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="fleet-finance-block">
+        <div class="fleet-panel-heading">
+          <strong>Vehiculos con mayor costo</strong>
+          <span>top operacional</span>
+        </div>
+        <div class="fleet-bar-list">
+          {% for item in dashboard_top_expensive_vehicles %}
+          <article class="fleet-bar-row">
+            <div class="fleet-bar-copy">
+              <strong>{{ item.label }}</strong>
+              <span>{{ item.total_items }} movimientos</span>
+            </div>
+            <div class="fleet-bar-track">
+              <span class="fleet-bar-fill" style="--fleet-bar-width: {{ item.bar_width }}%; --fleet-bar-color: {{ item.accent }};"></span>
+            </div>
+            <div class="fleet-bar-meta">
+              <strong>{{ item.value_display }}</strong>
+              <span>{{ item.share_percent }}%</span>
+            </div>
+          </article>
+          {% empty %}
+          <p class="fleet-empty-state">Sin gastos registrados este mes.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header">
+      <h2>Próximos vencimientos documentales</h2>
+      <a href="{% url 'admin:documents_vehicledocument_changelist' %}">Gestionar documentos</a>
+    </div>
+    <table class="fleet-table">
+      <thead>
+        <tr><th>Vehículo</th><th>Documento</th><th>Vence</th></tr>
+      </thead>
+      <tbody>
+        {% for document in dashboard_recent_documents %}
+        <tr>
+          <td>{{ document.vehicle.plate }}</td>
+          <td>{{ document.get_type_display }}</td>
+          <td>{{ document.expiry_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No hay vencimientos dentro de la ventana actual.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header">
+      <h2>TAG / pórticos</h2>
+      <a href="{% url 'admin:tags_tagcharge_analytics' %}">Abrir resumen TAG</a>
+    </div>
+    <div class="fleet-grid fleet-grid-tag">
+      <div class="fleet-tag-summary">
+        <div class="fleet-mini-grid fleet-mini-grid-tag">
+          <div>
+            <span class="fleet-mini-label">Conciliado</span>
+            <strong>${{ dashboard_tag_snapshot.reconciled_total|intcomma }}</strong>
+          </div>
+          <div>
+            <span class="fleet-mini-label">Pendientes</span>
+            <strong>{{ dashboard_tag_snapshot.pending_count }}</strong>
+          </div>
+          <div>
+            <span class="fleet-mini-label">Sin vehículo</span>
+            <strong>{{ dashboard_tag_snapshot.unmatched_count }}</strong>
+          </div>
+          <div>
+            <span class="fleet-mini-label">Ratio conciliación</span>
+            <strong>{{ dashboard_tag_metrics.reconciled_rate_display }}</strong>
+          </div>
+        </div>
+      </div>
+      <div class="fleet-bar-list">
+        {% for item in dashboard_top_tag_vehicles %}
+        <article class="fleet-bar-row">
+          <div class="fleet-bar-copy">
+            <strong>{{ item.label }}</strong>
+            <span>{{ item.total_charges }} cobros</span>
+          </div>
+          <div class="fleet-bar-track">
+            <span class="fleet-bar-fill" style="--fleet-bar-width: {{ item.bar_width }}%; --fleet-bar-color: {{ item.accent }};"></span>
+          </div>
+          <div class="fleet-bar-meta">
+            <strong>{{ item.value_display }}</strong>
+            <span>{{ item.share_percent }}%</span>
+          </div>
+        </article>
+        {% empty %}
+        <p class="fleet-empty-state">Sin consumo TAG registrado este mes.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+</div>

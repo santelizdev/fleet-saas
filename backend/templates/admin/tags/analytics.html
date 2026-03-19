@@ -1,0 +1,63 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{# Vista analítica base del módulo TAG / pórticos. #}
+{% block content %}
+<div class="fleet-dashboard">
+  <div class="fleet-page-header">
+    <div>
+      <p class="fleet-eyebrow">TAG / Pórticos</p>
+      <h1>Resumen analítico TAG</h1>
+      <p>Consolidado operativo y financiero para conciliación por vehículo, autopista y pórtico.</p>
+    </div>
+    <div class="fleet-header-meta">
+      <span class="fleet-badge fleet-badge-info">Mes actual</span>
+      <span class="fleet-badge fleet-badge-success">${{ tag_snapshot.month_total|intcomma }}</span>
+    </div>
+  </div>
+
+  <div class="fleet-kpi-grid">
+    <article class="fleet-card"><span class="fleet-kpi-label">Cobro TAG mes</span><strong class="fleet-kpi-value">${{ tag_snapshot.month_total|intcomma }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Conciliado</span><strong class="fleet-kpi-value">${{ tag_snapshot.reconciled_total|intcomma }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Pendientes</span><strong class="fleet-kpi-value">{{ tag_snapshot.pending_count }}</strong></article>
+    <article class="fleet-card fleet-card-emphasis"><span class="fleet-kpi-label">Sin vehículo</span><strong class="fleet-kpi-value">{{ tag_snapshot.unmatched_count }}</strong></article>
+  </div>
+
+  <div class="fleet-grid fleet-grid-2">
+    <div class="fleet-stack">
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Top vehículos por gasto TAG</h2><a href="{% url 'admin:tags_tagcharge_changelist' %}">Cobros</a></div>
+        <table class="fleet-table"><thead><tr><th>Vehículo</th><th>Cobros</th><th>Total</th></tr></thead><tbody>
+          {% for item in tag_top_vehicles %}<tr><td>{{ item.vehicle__plate }}</td><td>{{ item.total_charges }}</td><td>${{ item.total_amount|intcomma }}</td></tr>{% empty %}<tr><td colspan="3">Sin cobros TAG aún.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Desglose por autopista</h2><a href="{% url 'admin:tags_tollroad_changelist' %}">Autopistas</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Autopista</th><th>Cobros</th><th>Total</th></tr></thead><tbody>
+          {% for item in tag_by_road %}<tr><td>{{ item.road__name }}</td><td>{{ item.total_charges }}</td><td>${{ item.total_amount|intcomma }}</td></tr>{% empty %}<tr><td colspan="3">Sin cobros por autopista.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Desglose por pórtico</h2><a href="{% url 'admin:tags_tollgate_changelist' %}">Pórticos</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Pórtico</th><th>Autopista</th><th>Pasos</th></tr></thead><tbody>
+          {% for item in tag_by_gate %}<tr><td>{{ item.gate__name|default:"Sin pórtico" }}</td><td>{{ item.road__name }}</td><td>{{ item.total_transits }}</td></tr>{% empty %}<tr><td colspan="3">Sin tránsitos por pórtico.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+    </div>
+    <div class="fleet-stack">
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Últimos cobros TAG</h2><a href="{% url 'admin:tags_tagcharge_changelist' %}">Ver todos</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Fecha</th><th>Vehículo</th><th>Estado</th><th>Monto</th></tr></thead><tbody>
+          {% for item in tag_latest_charges %}<tr><td>{{ item.charge_date }}</td><td>{% if item.vehicle %}{{ item.vehicle.plate }}{% else %}{{ item.detected_plate|default:"Sin patente" }}{% endif %}</td><td>{{ item.get_status_display }}</td><td>${{ item.amount_clp|intcomma }}</td></tr>{% empty %}<tr><td colspan="4">Sin cobros importados.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Últimos movimientos TAG</h2><a href="{% url 'admin:tags_tagtransit_changelist' %}">Ver tránsitos</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Fecha</th><th>Vehículo</th><th>Pórtico</th><th>Monto</th></tr></thead><tbody>
+          {% for item in tag_recent_movements %}<tr><td>{{ item.transit_at }}</td><td>{% if item.vehicle %}{{ item.vehicle.plate }}{% else %}{{ item.detected_plate|default:"Sin patente" }}{% endif %}</td><td>{% if item.gate %}{{ item.gate.name }}{% else %}{{ item.road.name }}{% endif %}</td><td>${{ item.amount_clp|intcomma }}</td></tr>{% empty %}<tr><td colspan="4">Sin movimientos recientes.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

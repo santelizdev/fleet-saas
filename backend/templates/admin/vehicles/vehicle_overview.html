@@ -1,0 +1,82 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{# Pantalla 360 del vehículo para operación diaria. #}
+{% block content %}
+<div class="fleet-dashboard">
+  <div class="fleet-page-header">
+    <div>
+      <p class="fleet-eyebrow">Vista 360</p>
+      <h1>{{ vehicle.plate }} · {{ vehicle.brand }} {{ vehicle.model }}</h1>
+      <p>{{ risk.reason }}{% if driver %} · Conductor asignado: {{ driver.name }}{% endif %}</p>
+    </div>
+    <div class="fleet-header-meta">
+      <span class="fleet-badge fleet-badge-{{ risk.tone|default:'info' }}">{{ risk.label }}</span>
+      <span class="fleet-badge fleet-badge-info">{{ metrics.current_km|intcomma }} km</span>
+      <span class="fleet-badge fleet-badge-success">Estado: {{ vehicle.get_status_display }}</span>
+    </div>
+  </div>
+
+  <div class="fleet-kpi-grid">
+    <article class="fleet-card"><span class="fleet-kpi-label">Gasto histórico</span><strong class="fleet-kpi-value">${{ metrics.total_expense|intcomma }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Gasto del mes</span><strong class="fleet-kpi-value">${{ metrics.monthly_expense|intcomma }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">TAG histórico</span><strong class="fleet-kpi-value">${{ metrics.total_tag_expense|intcomma }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">TAG del mes</span><strong class="fleet-kpi-value">${{ metrics.monthly_tag_expense|intcomma }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Alertas</span><strong class="fleet-kpi-value">{{ metrics.alert_count }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Último odómetro</span><strong class="fleet-kpi-value">{{ metrics.last_odometer|intcomma }} km</strong></article>
+  </div>
+
+  <div class="fleet-quick-actions">
+    <a href="{{ quick_links.documents }}">Documentos</a>
+    <a href="{{ quick_links.maintenance }}">Mantenimientos</a>
+    <a href="{{ quick_links.expenses }}">Gastos</a>
+    <a href="{{ quick_links.alerts }}">Alertas</a>
+    <a href="{{ quick_links.tag }}">TAG</a>
+  </div>
+
+  <div class="fleet-grid fleet-grid-2">
+    <div class="fleet-stack">
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Estado documental</h2><a href="{{ quick_links.documents }}">Abrir</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Documento</th><th>Estado</th><th>Vence</th></tr></thead><tbody>
+          {% for item in documents %}<tr><td>{{ item.get_type_display }}</td><td>{{ item.get_status_display }}</td><td>{{ item.expiry_date }}</td></tr>{% empty %}<tr><td colspan="3">Sin documentos cargados.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Mantenimientos</h2><a href="{{ quick_links.maintenance }}">Abrir</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Fecha</th><th>Tipo</th><th>Estado</th><th>Próximo</th></tr></thead><tbody>
+          {% for item in maintenance %}<tr><td>{{ item.service_date }}</td><td>{{ item.get_type_display }}</td><td>{{ item.get_status_display }}</td><td>{{ item.next_due_date|default:item.next_due_km }}</td></tr>{% empty %}<tr><td colspan="4">Sin historial de mantenimiento.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Odómetro y kilometraje</h2><span>{{ vehicle.branch|default:"Sin sucursal" }}</span></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Fecha</th><th>Kilómetros</th><th>Origen</th></tr></thead><tbody>
+          {% for item in odometer_logs %}<tr><td>{{ item.created_at }}</td><td>{{ item.km|intcomma }}</td><td>{{ item.get_source_display }}</td></tr>{% empty %}<tr><td colspan="3">Sin lecturas registradas.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+    </div>
+
+    <div class="fleet-stack">
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Gastos recientes</h2><a href="{{ quick_links.expenses }}">Abrir</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Fecha</th><th>Categoría</th><th>Monto</th></tr></thead><tbody>
+          {% for item in recent_expenses %}<tr><td>{{ item.expense_date }}</td><td>{{ item.category.name|default:"Sin categoría" }}</td><td>${{ item.amount_clp|intcomma }}</td></tr>{% empty %}<tr><td colspan="3">Sin gastos recientes.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Alertas relacionadas</h2><a href="{{ quick_links.alerts }}">Abrir</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Tipo</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>
+          {% for item in document_alerts %}<tr><td>Documento</td><td>{{ item.get_state_display }}</td><td>{{ item.due_date }}</td></tr>{% endfor %}
+          {% for item in maintenance_alerts %}<tr><td>Mantención</td><td>{{ item.get_state_display }}</td><td>{{ item.due_date|default:item.due_km }}</td></tr>{% empty %}{% if not document_alerts %}<tr><td colspan="3">Sin alertas vinculadas.</td></tr>{% endif %}{% endfor %}
+        </tbody></table>
+      </section>
+      <section class="fleet-card fleet-section">
+        <div class="fleet-section-header"><h2>Bloque TAG / pórticos</h2><a href="{{ quick_links.tag }}">Abrir</a></div>
+        <table class="fleet-table fleet-table-compact"><thead><tr><th>Fecha</th><th>Punto</th><th>Monto</th></tr></thead><tbody>
+          {% for item in recent_tag_charges %}<tr><td>{{ item.charge_date }}</td><td>{% if item.gate %}{{ item.gate.name }}{% else %}{{ item.road.name }}{% endif %}</td><td>${{ item.amount_clp|intcomma }}</td></tr>{% empty %}<tr><td colspan="3">Sin cobros TAG conciliados al vehículo.</td></tr>{% endfor %}
+        </tbody></table>
+      </section>
+    </div>
+  </div>
+</div>
+{% endblock %}

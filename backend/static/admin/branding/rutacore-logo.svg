@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 96" role="img" aria-labelledby="rutacoreLogoTitle">
+  <title id="rutacoreLogoTitle">RutaCore</title>
+  <g transform="translate(2 2)">
+    <circle cx="46" cy="46" r="44" fill="#F97316"/>
+    <circle cx="46" cy="46" r="39" fill="#1D2E53"/>
+    <path d="m23 49 10-16 10-8 9 8 12 1 7 9" fill="none" stroke="#F97316" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+    <path d="M58 34v11m0-11H47" fill="none" stroke="#F97316" stroke-linecap="round" stroke-linejoin="round" stroke-width="6"/>
+    <path d="M24 59h43a5 5 0 0 0 5-5v-8a8 8 0 0 0-8-8H28a8 8 0 0 0-8 8v8a5 5 0 0 0 4 5Z" fill="none" stroke="#fff" stroke-linejoin="round" stroke-width="5"/>
+    <path d="m34 43 6-5h12l6 5" fill="none" stroke="#D6D8DB" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"/>
+    <circle cx="27" cy="57" r="2.5" fill="#fff"/>
+    <circle cx="64" cy="57" r="2.5" fill="#fff"/>
+    <path d="M57 20a11 11 0 1 0 12 17l6 6 2-2-5-6a11 11 0 0 0-15-15Z" fill="#fff"/>
+    <path d="M58 24a6 6 0 1 0 7 9l3 4 1-1-3-4a6 6 0 0 0-8-8Z" fill="#1D2E53"/>
+    <circle cx="63" cy="29" r="3.5" fill="#F97316"/>
+  </g>
+  <text x="108" y="61" fill="#1D2E53" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.2">Ruta</text>
+  <text x="230" y="61" fill="#F97316" font-family="Inter, Arial, sans-serif" font-size="48" font-weight="700" letter-spacing="-1.2">Core</text>
+</svg>

@@ -1,0 +1,25 @@
+{% load i18n %}
+
+{% if not theme %}
+    <div class="fleet-theme-switcher">
+        <button
+            type="button"
+            class="fleet-theme-option"
+            x-on:click="adminTheme = 'light'"
+            x-bind:class="adminTheme == 'light' && 'fleet-theme-option-active'"
+        >
+            <span class="material-symbols-outlined">light_mode</span>
+            <span>{% trans "Light" %}</span>
+        </button>
+
+        <button
+            type="button"
+            class="fleet-theme-option"
+            x-on:click="adminTheme = 'dark'"
+            x-bind:class="adminTheme == 'dark' && 'fleet-theme-option-active'"
+        >
+            <span class="material-symbols-outlined">dark_mode</span>
+            <span>{% trans "Dark" %}</span>
+        </button>
+    </div>
+{% endif %}

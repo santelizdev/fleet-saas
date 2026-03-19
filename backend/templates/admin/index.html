@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{# Home del admin convertida en dashboard operacional. #}
+{% block content %}
+<div class="fleet-dashboard">
+  {% include "admin/dashboard/_kpis.html" %}
+
+  <div class="fleet-grid fleet-grid-analytics">
+    {% include "admin/dashboard/_tables.html" %}
+    {% include "admin/dashboard/_activity.html" %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% load humanize %}
+{# Columna derecha con pendientes operacionales y actividad reciente. #}
+<div class="fleet-stack">
+  <section class="fleet-card fleet-section fleet-focus-card">
+    <div class="fleet-section-header">
+      <div>
+        <h2>Foco operacional</h2>
+        <p class="fleet-section-subtitle">Distribución de la presión actual entre alertas, documentos, mantenimiento y TAG.</p>
+      </div>
+      <span class="fleet-badge fleet-badge-info">{{ dashboard_focus_card.score_display }} saludable</span>
+    </div>
+    <div class="fleet-focus-layout">
+      <div class="fleet-donut" style="--fleet-donut-gradient: {{ dashboard_focus_card.gradient }};">
+        <div class="fleet-donut-hole">
+          <strong>{{ dashboard_focus_card.score_display }}</strong>
+          <span>pulso</span>
+        </div>
+      </div>
+      <div class="fleet-focus-legend">
+        {% for item in dashboard_focus_card.segments %}
+        <div class="fleet-focus-item">
+          <span class="fleet-focus-dot" style="--fleet-focus-color: {{ item.color }};"></span>
+          <div>
+            <strong>{{ item.label }}</strong>
+            <span>{{ item.value }} items · {{ item.share_percent }}%</span>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header">
+      <h2>Mantenimientos próximos</h2>
+      <a href="{% url 'admin:maintenance_maintenancerecord_changelist' %}">Ver plan</a>
+    </div>
+    <table class="fleet-table fleet-table-compact">
+      <thead>
+        <tr><th>Vehículo</th><th>Estado</th><th>Próxima fecha</th></tr>
+      </thead>
+      <tbody>
+        {% for item in dashboard_due_maintenance %}
+        <tr>
+          <td>{{ item.vehicle.plate }}</td>
+          <td>{{ item.get_status_display }}</td>
+          <td>{{ item.next_due_date|default:item.service_date }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No hay pendientes críticos por ahora.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header">
+      <h2>Últimos movimientos TAG</h2>
+      <a href="{% url 'admin:tags_tagtransit_changelist' %}">Ver tránsitos</a>
+    </div>
+    <table class="fleet-table fleet-table-compact">
+      <thead>
+        <tr><th>Vehículo</th><th>Pórtico</th><th>Monto</th></tr>
+      </thead>
+      <tbody>
+        {% for transit in dashboard_recent_tag_movements %}
+        <tr>
+          <td>{% if transit.vehicle %}{{ transit.vehicle.plate }}{% else %}{{ transit.detected_plate|default:"Sin patente" }}{% endif %}</td>
+          <td>{% if transit.gate %}{{ transit.gate.name }}{% else %}{{ transit.road.name }}{% endif %}</td>
+          <td>${{ transit.amount_clp|intcomma }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">Todavía no hay movimientos TAG para mostrar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header">
+      <h2>Últimos movimientos TAG</h2>
+      <a href="{% url 'admin:tags_tagtransit_changelist' %}">Ver tránsitos</a>
+    </div>
+    <table class="fleet-table fleet-table-compact">
+      <thead>
+        <tr><th>Vehículo</th><th>Pórtico</th><th>Monto</th></tr>
+      </thead>
+      <tbody>
+        {% for transit in dashboard_recent_tag_movements %}
+        <tr>
+          <td>{% if transit.vehicle %}{{ transit.vehicle.plate }}{% else %}{{ transit.detected_plate|default:"Sin patente" }}{% endif %}</td>
+          <td>{% if transit.gate %}{{ transit.gate.name }}{% else %}{{ transit.road.name }}{% endif %}</td>
+          <td>${{ transit.amount_clp|intcomma }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">Todavía no hay movimientos TAG para mostrar.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header">
+      <h2>Actividad reciente</h2>
+      <a href="{% url 'admin:audit_auditlog_changelist' %}">Auditoría</a>
+    </div>
+    <ul class="fleet-timeline">
+      {% for item in dashboard_recent_activity %}
+      <li>
+        <div class="fleet-timeline-badge" style="--fleet-timeline-accent: {{ item.source_color }};">{{ item.source_label }}</div>
+        <strong>{{ item.title }}</strong>
+        <span>{{ item.subtitle }}</span>
+        <small>{{ item.actor }} · {{ item.when }}</small>
+      </li>
+      {% empty %}
+      <li>Sin actividad reciente aún.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
