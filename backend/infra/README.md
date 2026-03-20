@@ -1,5 +1,10 @@
 # Infra MVP (Semana 8)
 
+## Nota de despliegue
+- Si usas `docker compose`, la app queda expuesta en el host por `18100` y Nginx debe hacer proxy a `127.0.0.1:18100`.
+- Si usas `systemd + gunicorn`, Nginx debe hacer proxy a `127.0.0.1:8000`.
+- No mezclar ambos targets.
+
 ## Gunicorn (systemd)
 1. Copiar `infra/systemd/gunicorn.service` a `/etc/systemd/system/gunicorn.service`.
 2. Ajustar rutas `/opt/fleet` según tu VPS.
@@ -23,6 +28,6 @@
 - Backup diario 03:00:
   `0 3 * * * /opt/fleet/backend/scripts/backup_postgres.sh /var/backups/fleet`
 - Generación de alertas diaria 08:00:
-  `0 8 * * * cd /opt/fleet && docker compose run --rm web python manage.py generate_daily_alerts`
+  `0 8 * * * cd /opt/fleet && docker compose exec -T web python manage.py generate_daily_alerts`
 - Procesar notificaciones cada 5 min:
-  `*/5 * * * * cd /opt/fleet && docker compose run --rm web python manage.py process_notifications --limit=100 --max-attempts=5`
+  `*/5 * * * * cd /opt/fleet && docker compose exec -T web python manage.py process_notifications --limit=100 --max-attempts=5`

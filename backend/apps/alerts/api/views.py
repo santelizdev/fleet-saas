@@ -4,9 +4,11 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from apps.accounts.permissions import HasCapability
-from apps.alerts.models import AlertState, DocumentAlert, MaintenanceAlert, Notification
+from django.utils import timezone
 
-from .serializers import DocumentAlertSerializer, MaintenanceAlertSerializer, NotificationSerializer
+from apps.alerts.models import AlertState, DocumentAlert, MaintenanceAlert, Notification, PushDevice
+
+from .serializers import DocumentAlertSerializer, MaintenanceAlertSerializer, NotificationSerializer, PushDeviceSerializer
 
 
 class AlertCapabilityViewSet(viewsets.ModelViewSet):
@@ -20,6 +22,7 @@ class AlertCapabilityViewSet(viewsets.ModelViewSet):
         "acknowledge": "doc.manage",
         "resolve": "doc.manage",
         "requeue": "doc.manage",
+        "deactivate": "doc.manage",
     }
 
     def get_permissions(self):
@@ -101,3 +104,28 @@ class NotificationViewSet(AlertCapabilityViewSet):
         notification.last_error = ""
         notification.save(update_fields=["status", "last_error"])
         return Response(self.get_serializer(notification).data, status=status.HTTP_200_OK)
+
+
+class PushDeviceViewSet(AlertCapabilityViewSet):
+    """Permite a clientes registrar tokens web/mobile para notificaciones push."""
+
+    queryset = PushDevice.objects.select_related("user").all().order_by("-last_seen_at", "-id")
+    serializer_class = PushDeviceSerializer
+    http_method_names = ["get", "post", "head", "options", "patch"]
+
+    def get_queryset(self):
+        return super().get_queryset().filter(company_id=self._request_company_id())
+
+    def perform_create(self, serializer):
+        serializer.save(company_id=self._request_company_id(), last_seen_at=timezone.now())
+
+    def perform_update(self, serializer):
+        serializer.save(last_seen_at=timezone.now())
+
+    @action(methods=["post"], detail=True)
+    def deactivate(self, request, pk=None):
+        device = self.get_object()
+        device.is_active = False
+        device.last_seen_at = timezone.now()
+        device.save(update_fields=["is_active", "last_seen_at"])
+        return Response(self.get_serializer(device).data, status=status.HTTP_200_OK)

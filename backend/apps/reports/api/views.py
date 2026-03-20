@@ -1,12 +1,9 @@
 import csv
-from datetime import timedelta
 
 from django.conf import settings
 from django.core.exceptions import PermissionDenied
-from django.db.models import Count, Sum
 from django.http import HttpResponse, JsonResponse
 from django.utils import timezone
-from django.utils.dateparse import parse_date
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,11 +11,9 @@ from rest_framework.views import APIView
 from apps.accounts.permissions import HasCapability
 from apps.audit.models import AuditLog
 from apps.companies.limits import enforce_export_limits, get_effective_limits
-from apps.documents.models import VehicleDocument
-from apps.maintenance.models import MaintenanceRecord
 from apps.product_analytics.events import track_event
 from apps.reports.models import ReportExportLog
-from apps.vehicles.models import Vehicle
+from apps.reports.services import build_dashboard_report, build_report_filters, build_vehicle_cost_rows
 
 
 def _company_id_from_request(request):
@@ -36,97 +31,15 @@ class CapabilityAPIView(APIView):
 class DashboardReportView(CapabilityAPIView):
     def get(self, request):
         company_id = _company_id_from_request(request)
-        today = timezone.localdate()
-        date_from = parse_date(request.GET.get("date_from") or "") or (today - timedelta(days=30))
-        date_to = parse_date(request.GET.get("date_to") or "") or today
-        vehicle_id = request.GET.get("vehicle_id")
-
-        maintenance_qs = MaintenanceRecord.objects.filter(
-            company_id=company_id,
-            service_date__gte=date_from,
-            service_date__lte=date_to,
-        )
-        if vehicle_id:
-            maintenance_qs = maintenance_qs.filter(vehicle_id=vehicle_id)
-
-        upcoming_doc_expiries = VehicleDocument.objects.filter(
-            company_id=company_id,
-            is_current=True,
-            expiry_date__gte=today,
-            expiry_date__lte=today + timedelta(days=30),
-        ).count()
-        upcoming_7 = VehicleDocument.objects.filter(
-            company_id=company_id,
-            is_current=True,
-            expiry_date__gte=today,
-            expiry_date__lte=today + timedelta(days=7),
-        ).count()
-        upcoming_15 = VehicleDocument.objects.filter(
-            company_id=company_id,
-            is_current=True,
-            expiry_date__gte=today,
-            expiry_date__lte=today + timedelta(days=15),
-        ).count()
-        upcoming_30 = upcoming_doc_expiries
-
-        maintenance_due = MaintenanceRecord.objects.filter(
-            company_id=company_id,
-            status=MaintenanceRecord.STATUS_OPEN,
-        ).filter(
-            next_due_date__lte=today + timedelta(days=30),
-        ).count()
-
-        monthly_maintenance_cost = maintenance_qs.aggregate(total=Sum("cost_clp"))["total"] or 0
-
-        top_vehicles = (
-            maintenance_qs.values("vehicle_id", "vehicle__plate")
-            .annotate(total_cost=Sum("cost_clp"), records=Count("id"))
-            .order_by("-total_cost")[:5]
-        )
-
-        return Response(
-            {
-                "date_from": str(date_from),
-                "date_to": str(date_to),
-                "upcoming_doc_expiries": upcoming_doc_expiries,
-                "expiring_7d": upcoming_7,
-                "expiring_15d": upcoming_15,
-                "expiring_30d": upcoming_30,
-                "maintenance_due_30d": maintenance_due,
-                "maintenance_cost_clp": monthly_maintenance_cost,
-                "top_vehicles": list(top_vehicles),
-            }
-        )
+        filters = build_report_filters(request.GET, company_id=company_id)
+        return Response(build_dashboard_report(filters))
 
 
 class VehicleCostReportView(CapabilityAPIView):
     def get(self, request):
         company_id = _company_id_from_request(request)
-        vehicle_id = request.GET.get("vehicle_id")
-        qs = Vehicle.objects.filter(company_id=company_id).order_by("id")
-        if vehicle_id:
-            qs = qs.filter(id=vehicle_id)
-
-        rows = []
-        for vehicle in qs:
-            total_cost = (
-                MaintenanceRecord.objects.filter(company_id=company_id, vehicle_id=vehicle.id).aggregate(total=Sum("cost_clp"))[
-                    "total"
-                ]
-                or 0
-            )
-            km = vehicle.current_km or 0
-            cost_per_km = round(total_cost / km, 4) if km > 0 else None
-            rows.append(
-                {
-                    "vehicle_id": vehicle.id,
-                    "plate": vehicle.plate,
-                    "current_km": km,
-                    "total_cost_clp": total_cost,
-                    "cost_per_km": cost_per_km,
-                }
-            )
-
+        filters = build_report_filters(request.GET, company_id=company_id)
+        rows = build_vehicle_cost_rows(filters)
         return Response({"results": rows})
 
 
@@ -134,6 +47,7 @@ class ExportVehicleCostCSVView(CapabilityAPIView):
     def get(self, request):
         company_id = _company_id_from_request(request)
         today = timezone.localdate()
+        filters = build_report_filters(request.GET, company_id=company_id)
         max_rows = int(getattr(settings, "REPORT_MAX_EXPORT_ROWS", 5000))
         max_exports_per_day = int(getattr(settings, "REPORT_MAX_EXPORTS_PER_DAY", 20))
         limits = get_effective_limits(company_id)
@@ -159,17 +73,10 @@ class ExportVehicleCostCSVView(CapabilityAPIView):
             )
             return JsonResponse({"detail": "Límite diario de exports alcanzado."}, status=429)
 
-        rows = []
-        for vehicle in Vehicle.objects.filter(company_id=company_id).order_by("id"):
-            total_cost = (
-                MaintenanceRecord.objects.filter(company_id=company_id, vehicle_id=vehicle.id).aggregate(total=Sum("cost_clp"))[
-                    "total"
-                ]
-                or 0
-            )
-            km = vehicle.current_km or 0
-            cost_per_km = round(total_cost / km, 4) if km > 0 else None
-            rows.append([vehicle.id, vehicle.plate, km, total_cost, cost_per_km])
+        rows = [
+            [item["vehicle_id"], item["plate"], item["current_km"], item["total_cost_clp"], item["cost_per_km"]]
+            for item in build_vehicle_cost_rows(filters)
+        ]
 
         if len(rows) > max_rows:
             ReportExportLog.objects.create(

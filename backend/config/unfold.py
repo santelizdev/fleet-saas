@@ -146,14 +146,24 @@ def navigation(request) -> list[dict[str, Any]]:
                     "icon": "mail",
                     "link": reverse_lazy("admin:alerts_notification_changelist"),
                 },
+                {
+                    "title": "Dispositivos push",
+                    "icon": "devices",
+                    "link": reverse_lazy("admin:alerts_pushdevice_changelist"),
+                },
             ],
         },
         {
             "title": "Reportes",
             "items": [
                 {
-                    "title": "Exportaciones",
+                    "title": "Centro reportes",
                     "icon": "analytics",
+                    "link": reverse_lazy("admin:reports_reportexportlog_overview"),
+                },
+                {
+                    "title": "Exportaciones",
+                    "icon": "download",
                     "link": reverse_lazy("admin:reports_reportexportlog_changelist"),
                 },
                 {

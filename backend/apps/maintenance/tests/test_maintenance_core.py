@@ -61,4 +61,4 @@ class MaintenanceCoreTest(TestCase):
         call_command("generate_daily_alerts")
 
         self.assertEqual(MaintenanceAlert.objects.count(), 2)
-        self.assertEqual(Notification.objects.filter(maintenance_alert__isnull=False).count(), 2)
+        self.assertEqual(Notification.objects.filter(maintenance_alert__isnull=False).count(), 4)

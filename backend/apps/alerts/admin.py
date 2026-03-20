@@ -8,7 +8,7 @@ from unfold.decorators import display
 
 from config.admin_scoping import CompanyScopedAdminMixin
 
-from .models import DocumentAlert, JobRun, MaintenanceAlert, Notification
+from .models import DocumentAlert, JobRun, MaintenanceAlert, Notification, PushDevice
 
 
 @admin.register(DocumentAlert)
@@ -61,6 +61,17 @@ class NotificationAdmin(CompanyScopedAdminMixin, ModelAdmin):
     search_fields = ("recipient", "last_error")
     list_select_related = ("company", "document_alert", "maintenance_alert")
     ordering = ("-created_at",)
+    readonly_fields = ("payload_preview",)
+    fields = (
+        "company",
+        "document_alert",
+        "maintenance_alert",
+        ("channel", "status"),
+        "recipient",
+        "payload_preview",
+        ("attempts", "available_at", "sent_at"),
+        "last_error",
+    )
     form_company_filters = {
         "company": "id",
         "document_alert": "company_id",
@@ -70,6 +81,29 @@ class NotificationAdmin(CompanyScopedAdminMixin, ModelAdmin):
     @display(description="Estado", label={"queued": "warning", "sent": "success", "failed": "danger"})
     def status_badge(self, obj):
         return obj.status, obj.get_status_display()
+
+    @display(description="Payload")
+    def payload_preview(self, obj):
+        return obj.payload or {}
+
+
+@admin.register(PushDevice)
+class PushDeviceAdmin(CompanyScopedAdminMixin, ModelAdmin):
+    """Permite registrar tokens push por usuario sin acoplar el admin a un proveedor."""
+
+    list_display = ("user", "provider", "label", "active_badge", "last_seen_at", "created_at")
+    list_filter = ("company", "provider", "is_active")
+    search_fields = ("user__email", "user__name", "label", "token")
+    list_select_related = ("company", "user")
+    readonly_fields = ("last_seen_at", "created_at")
+    form_company_filters = {
+        "company": "id",
+        "user": "company_id",
+    }
+
+    @display(description="Estado", label={True: "success", False: "danger"})
+    def active_badge(self, obj):
+        return obj.is_active, "Activo" if obj.is_active else "Inactivo"
 
 
 @admin.register(JobRun)

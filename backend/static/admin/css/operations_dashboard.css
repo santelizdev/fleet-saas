@@ -197,6 +197,71 @@ body {
   margin: 0.45rem 0 0;
 }
 
+.fleet-page-header {
+  align-items: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.fleet-grid-2 {
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+}
+
+.fleet-link-chip {
+  background: rgba(29, 46, 83, 0.08);
+  border: 1px solid rgba(29, 46, 83, 0.12);
+  border-radius: 999px;
+  color: var(--fleet-navy);
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 0.7rem 1rem;
+  text-decoration: none;
+}
+
+.fleet-link-chip:hover {
+  background: rgba(29, 46, 83, 0.12);
+}
+
+.fleet-report-filters {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.fleet-report-filters label {
+  color: var(--fleet-text);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.fleet-report-filters label span {
+  color: var(--fleet-muted);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fleet-report-filters input,
+.fleet-report-filters select,
+.fleet-report-filters button {
+  background: #fff;
+  border: 1px solid var(--fleet-border);
+  border-radius: 12px;
+  min-height: 44px;
+  padding: 0.75rem 0.85rem;
+}
+
+.fleet-report-filters button {
+  align-self: end;
+  background: linear-gradient(135deg, var(--fleet-navy), #304a77);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 700;
+}
+
 .fleet-quick-actions a {
   background: rgba(249, 115, 22, 0.1);
   border: 1px solid rgba(249, 115, 22, 0.16);

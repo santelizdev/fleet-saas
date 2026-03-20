@@ -1,0 +1,155 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{# Centro de reportes operativo con filtros y módulos reutilizables. #}
+{% block content %}
+<div class="fleet-dashboard">
+  <div class="fleet-page-header">
+    <div>
+      <p class="fleet-eyebrow">Reportes</p>
+      <h1>Centro de reportes operativos</h1>
+      <p>Vista consolidada de cumplimiento, mantenimiento, gastos, alertas y TAG sin salir del admin.</p>
+    </div>
+    <div class="fleet-header-meta">
+      <a class="fleet-link-chip" href="{% url 'report-vehicle-costs-export' %}?date_from={{ report_filters.date_from }}&date_to={{ report_filters.date_to }}{% if report_filters.vehicle_id %}&vehicle_id={{ report_filters.vehicle_id }}{% endif %}">Exportar costo por vehículo</a>
+      <span class="fleet-badge fleet-badge-info">{{ report_filters.date_from }} a {{ report_filters.date_to }}</span>
+    </div>
+  </div>
+
+  <section class="fleet-card fleet-section">
+    <form method="get" class="fleet-report-filters">
+      <label><span>Desde</span><input type="date" name="date_from" value="{{ report_filters.date_from|date:'Y-m-d' }}"></label>
+      <label><span>Hasta</span><input type="date" name="date_to" value="{{ report_filters.date_to|date:'Y-m-d' }}"></label>
+      <label>
+        <span>Vehículo</span>
+        <select name="vehicle_id">
+          <option value="">Todos</option>
+          {% for vehicle in report_vehicles %}
+          <option value="{{ vehicle.id }}" {% if report_filters.vehicle_id == vehicle.id %}selected{% endif %}>{{ vehicle.plate }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Tipo de reporte</span>
+        <select name="report_type">
+          {% for value, label in report_type_choices %}
+          <option value="{{ value }}" {% if report_filters.report_type == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Estado</span>
+        <select name="status">
+          {% for value, label in report_status_choices %}
+          <option value="{{ value }}" {% if report_filters.status_focus == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <button type="submit">Aplicar filtros</button>
+    </form>
+  </section>
+
+  <div class="fleet-kpi-grid">
+    <article class="fleet-card"><span class="fleet-kpi-label">Vehículos scopeados</span><strong class="fleet-kpi-value">{{ report_kpis.vehicles }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Documentos por vencer</span><strong class="fleet-kpi-value">{{ report_kpis.expiring_documents }}</strong></article>
+    <article class="fleet-card fleet-card-emphasis"><span class="fleet-kpi-label">Documentos vencidos</span><strong class="fleet-kpi-value">{{ report_kpis.expired_documents }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Mantenciones abiertas</span><strong class="fleet-kpi-value">{{ report_kpis.open_maintenance }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Gasto del período</span><strong class="fleet-kpi-value">${{ report_kpis.expenses_total|intcomma }}</strong></article>
+    <article class="fleet-card fleet-card-emphasis"><span class="fleet-kpi-label">Alertas activas</span><strong class="fleet-kpi-value">{{ report_kpis.active_alerts }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">TAG del período</span><strong class="fleet-kpi-value">${{ report_kpis.tag_total|intcomma }}</strong></article>
+  </div>
+
+  {% if report_filters.report_type == "all" or report_filters.report_type == "compliance" %}
+  <div class="fleet-grid fleet-grid-2">
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Documentos próximos a vencer</h2><a href="{% url 'admin:documents_vehicledocument_changelist' %}">Documentos</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Vehículo</th><th>Tipo</th><th>Conductor</th><th>Vence</th></tr></thead><tbody>
+        {% for item in report_expiring_documents %}<tr><td>{{ item.vehicle.plate }}</td><td>{{ item.get_type_display }}</td><td>{% if item.vehicle.assigned_driver %}{{ item.vehicle.assigned_driver.name|default:item.vehicle.assigned_driver.email }}{% else %}Sin asignar{% endif %}</td><td>{{ item.expiry_date }}</td></tr>{% empty %}<tr><td colspan="4">No hay documentos próximos a vencer.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Documentos vencidos</h2><a href="{% url 'admin:alerts_documentalert_changelist' %}">Centro de alertas</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Vehículo</th><th>Tipo</th><th>Estado</th><th>Venció</th></tr></thead><tbody>
+        {% for item in report_expired_documents %}<tr><td>{{ item.vehicle.plate }}</td><td>{{ item.get_type_display }}</td><td>{{ item.get_status_display }}</td><td>{{ item.expiry_date }}</td></tr>{% empty %}<tr><td colspan="4">No hay documentos vencidos en el scope actual.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+  {% endif %}
+
+  {% if report_filters.report_type == "all" or report_filters.report_type == "maintenance" %}
+  <div class="fleet-grid fleet-grid-2">
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Próximas mantenciones</h2><a href="{% url 'admin:maintenance_maintenancerecord_changelist' %}">Plan mantenimiento</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Vehículo</th><th>Tipo</th><th>Próxima fecha</th><th>Próximo km</th></tr></thead><tbody>
+        {% for item in report_maintenance_upcoming %}<tr><td>{{ item.vehicle.plate }}</td><td>{{ item.get_type_display }}</td><td>{{ item.next_due_date|default:"-" }}</td><td>{{ item.next_due_km|default:"-" }}</td></tr>{% empty %}<tr><td colspan="4">No hay mantenciones próximas en el scope actual.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Mantenciones vencidas</h2><a href="{% url 'admin:alerts_maintenancealert_changelist' %}">Alertas de mantenimiento</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Vehículo</th><th>Servicio</th><th>Fecha límite</th><th>Costo histórico</th></tr></thead><tbody>
+        {% for item in report_maintenance_overdue %}<tr><td>{{ item.vehicle.plate }}</td><td>{{ item.description|default:item.get_type_display }}</td><td>{{ item.next_due_date|default:"-" }}</td><td>${{ item.cost_clp|intcomma }}</td></tr>{% empty %}<tr><td colspan="4">No hay mantenciones vencidas.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+  {% endif %}
+
+  {% if report_filters.report_type == "all" or report_filters.report_type == "expenses" %}
+  <div class="fleet-grid fleet-grid-2">
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Gasto por categoría</h2><a href="{% url 'admin:expenses_vehicleexpense_changelist' %}">Gastos</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Categoría</th><th>Items</th><th>Total</th></tr></thead><tbody>
+        {% for item in report_expense_by_category %}<tr><td>{{ item.category__name|default:"Sin categoría" }}</td><td>{{ item.total_items }}</td><td>${{ item.total_amount|intcomma }}</td></tr>{% empty %}<tr><td colspan="3">No hay gastos para el período filtrado.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Vehículos con mayor gasto</h2><a href="{% url 'report-vehicle-costs' %}">API costo vehículo</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Vehículo</th><th>Items</th><th>Total</th></tr></thead><tbody>
+        {% for item in report_expense_by_vehicle %}<tr><td>{{ item.vehicle__plate|default:"Sin vehículo" }}</td><td>{{ item.total_items }}</td><td>${{ item.total_amount|intcomma }}</td></tr>{% empty %}<tr><td colspan="3">No hay gasto consolidado por vehículo.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+  {% endif %}
+
+  {% if report_filters.report_type == "all" or report_filters.report_type == "alerts" %}
+  <div class="fleet-grid fleet-grid-2">
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Resumen de alertas</h2><a href="{% url 'admin:alerts_notification_changelist' %}">Cola de notificaciones</a></div>
+      <div class="fleet-mini-grid">
+        <article class="fleet-highlight-card"><span class="fleet-mini-label">Docs pendientes</span><strong>{{ report_alert_summary.documents_pending }}</strong></article>
+        <article class="fleet-highlight-card"><span class="fleet-mini-label">Docs enviados</span><strong>{{ report_alert_summary.documents_sent }}</strong></article>
+        <article class="fleet-highlight-card"><span class="fleet-mini-label">Mantenciones pendientes</span><strong>{{ report_alert_summary.maintenance_pending }}</strong></article>
+        <article class="fleet-highlight-card"><span class="fleet-mini-label">Mantenciones enviadas</span><strong>{{ report_alert_summary.maintenance_sent }}</strong></article>
+      </div>
+    </section>
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Exportaciones recientes</h2><a href="{% url 'admin:reports_reportexportlog_changelist' %}">Logs</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Reporte</th><th>Formato</th><th>Estado</th><th>Filas</th></tr></thead><tbody>
+        {% for item in report_recent_exports %}<tr><td>{{ item.report_type }}</td><td>{{ item.get_export_format_display }}</td><td>{{ item.get_status_display }}</td><td>{{ item.row_count }}</td></tr>{% empty %}<tr><td colspan="4">Aún no hay exportaciones registradas.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+  {% endif %}
+
+  {% if report_filters.report_type == "all" or report_filters.report_type == "tags" %}
+  <div class="fleet-grid fleet-grid-2">
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Resumen TAG</h2><a href="{% url 'admin:tags_tagcharge_analytics' %}">Analítica TAG</a></div>
+      <div class="fleet-mini-grid">
+        <article class="fleet-highlight-card"><span class="fleet-mini-label">Monto</span><strong>${{ report_tag_summary.total_amount|intcomma }}</strong></article>
+        <article class="fleet-highlight-card"><span class="fleet-mini-label">Pendientes</span><strong>{{ report_tag_summary.pending_count }}</strong></article>
+        <article class="fleet-highlight-card"><span class="fleet-mini-label">Sin match</span><strong>{{ report_tag_summary.unmatched_count }}</strong></article>
+      </div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Vehículo</th><th>Cobros</th><th>Total</th></tr></thead><tbody>
+        {% for item in report_tag_summary.top_vehicles %}<tr><td>{{ item.vehicle__plate|default:"Sin vehículo" }}</td><td>{{ item.total_items }}</td><td>${{ item.total_amount|intcomma }}</td></tr>{% empty %}<tr><td colspan="3">Sin cobros TAG para el período.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Tránsitos recientes</h2><a href="{% url 'admin:tags_tagtransit_changelist' %}">Tránsitos</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Fecha</th><th>Vehículo</th><th>Pórtico</th><th>Monto</th></tr></thead><tbody>
+        {% for item in report_tag_summary.recent_transits %}<tr><td>{{ item.transit_at }}</td><td>{% if item.vehicle %}{{ item.vehicle.plate }}{% else %}{{ item.detected_plate|default:"Sin patente" }}{% endif %}</td><td>{% if item.gate %}{{ item.gate.name }}{% else %}{{ item.road.name }}{% endif %}</td><td>${{ item.amount_clp|intcomma }}</td></tr>{% empty %}<tr><td colspan="4">Sin tránsitos recientes.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
