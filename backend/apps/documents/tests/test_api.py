@@ -171,6 +171,17 @@ class DocumentsAPITest(APITestCase):
             },
         )
 
+    def test_create_pack_rejects_vehicle_from_other_company(self):
+        self.client.force_authenticate(self.user_a)
+        url = reverse("vehicle-document-create-pack")
+        response = self.client.post(
+            url,
+            {"vehicle_id": self.vehicle_b.id, "issue_date": "2026-01-01", "expiry_date": "2026-12-31"},
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("vehicle_id no pertenece", str(response.data))
+
     def test_integrated_support_image_upload_limit_enforced(self):
         self.client.force_authenticate(self.user_a)
         CompanyLimit.objects.create(company=self.company_a, max_uploads_per_day=0)

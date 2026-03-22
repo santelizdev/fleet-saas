@@ -9,6 +9,7 @@ from django.utils import timezone
 from apps.accounts.models import User
 from apps.companies.models import Company
 from apps.documents.models import DriverLicense, VehicleDocument
+from apps.maintenance.models import MaintenanceRecord
 from apps.vehicles.models import Vehicle
 
 
@@ -85,6 +86,13 @@ class MaintenanceAlert(models.Model):
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="maintenance_alerts")
     vehicle = models.ForeignKey(Vehicle, on_delete=models.CASCADE, related_name="maintenance_alerts")
+    maintenance_record = models.ForeignKey(
+        MaintenanceRecord,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="maintenance_alerts",
+    )
     maintenance_record_ref = models.CharField(max_length=64, blank=True, default="")
     kind = models.CharField(max_length=16, choices=KIND_CHOICES)
     due_date = models.DateField(null=True, blank=True)
@@ -101,12 +109,23 @@ class MaintenanceAlert(models.Model):
     def clean(self):
         if self.vehicle.company_id != self.company_id:
             raise ValidationError("vehicle debe pertenecer a la misma company.")
+        if self.maintenance_record_id:
+            if self.maintenance_record.company_id != self.company_id:
+                raise ValidationError("maintenance_record debe pertenecer a la misma company.")
+            if self.maintenance_record.vehicle_id != self.vehicle_id:
+                raise ValidationError("maintenance_record debe pertenecer al mismo vehículo.")
         if self.kind == self.KIND_BY_DATE and self.due_date is None:
             raise ValidationError("MaintenanceAlert by_date requiere due_date.")
         if self.kind == self.KIND_BY_KM and self.due_km is None:
             raise ValidationError("MaintenanceAlert by_km requiere due_km.")
+        if self.kind == self.KIND_OVERDUE_DATE and self.due_date is None:
+            raise ValidationError("MaintenanceAlert overdue_date requiere due_date.")
+        if self.kind == self.KIND_OVERDUE_KM and self.due_km is None:
+            raise ValidationError("MaintenanceAlert by_km requiere due_km.")
 
     def save(self, *args, **kwargs):
+        if self.maintenance_record_id:
+            self.maintenance_record_ref = str(self.maintenance_record_id)
         self.full_clean()
         return super().save(*args, **kwargs)
 

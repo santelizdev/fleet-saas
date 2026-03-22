@@ -41,12 +41,13 @@ class DocumentAlertAdmin(CompanyScopedAdminMixin, ModelAdmin):
 class MaintenanceAlertAdmin(CompanyScopedAdminMixin, ModelAdmin):
     list_display = ("vehicle", "kind", "state_badge", "due_date", "due_km", "created_at")
     list_filter = ("company", "kind", "state")
-    search_fields = ("vehicle__plate", "maintenance_record_ref", "message")
-    list_select_related = ("company", "vehicle")
+    search_fields = ("vehicle__plate", "maintenance_record_ref", "maintenance_record__id", "message")
+    list_select_related = ("company", "vehicle", "maintenance_record")
     ordering = ("due_date", "-created_at")
     form_company_filters = {
         "company": "id",
         "vehicle": "company_id",
+        "maintenance_record": "company_id",
     }
 
     @display(description="Estado", label={"pending": "warning", "sent": "info", "acknowledged": "success", "resolved": "success"})

@@ -40,6 +40,11 @@ def _maintenance_reminder_km() -> int:
     return int(getattr(settings, "ALERT_DEFAULT_MAINTENANCE_REMINDER_KM", 500))
 
 
+def _alert_generation_batch_size() -> int:
+    """Permite procesar datasets grandes sin materializar toda la tabla en memoria."""
+    return int(getattr(settings, "ALERT_GENERATION_BATCH_SIZE", 500))
+
+
 def _assigned_user_for_document(document: VehicleDocument):
     """Usa el conductor asignado como destinatario principal cuando existe."""
     return getattr(document.vehicle, "assigned_driver", None)
@@ -142,10 +147,22 @@ def queue_alert_notifications(*, document_alert: DocumentAlert | None = None, ma
         elif document_alert.driver_license_id:
             user = _assigned_user_for_license(document_alert.driver_license)
     else:
-        record_id = maintenance_alert.maintenance_record_ref
-        record = MaintenanceRecord.objects.filter(id=record_id).select_related("vehicle", "vehicle__assigned_driver").first()
+        record = None
+        if maintenance_alert.maintenance_record_id:
+            record = maintenance_alert.maintenance_record
+        elif maintenance_alert.maintenance_record_ref:
+            record = (
+                MaintenanceRecord.objects.filter(id=maintenance_alert.maintenance_record_ref)
+                .select_related("vehicle", "vehicle__assigned_driver")
+                .first()
+            )
         if record:
             user = _assigned_user_for_maintenance(record)
+        else:
+            logger.warning(
+                "Maintenance alert %s has no resolvable maintenance record; notifications will stay in-app only.",
+                maintenance_alert.id,
+            )
 
     recipient = getattr(user, "email", "") or ""
     payload = _notification_payload(
@@ -222,6 +239,15 @@ def _queue_maintenance_alert(alert: MaintenanceAlert, *, kind_for_tracking: str,
     queued = queue_alert_notifications(maintenance_alert=alert)
     result.queued_notifications += queued
     _track_queued_notifications(alert.company_id, kind_for_tracking, queued)
+
+
+def _ensure_maintenance_record_link(alert: MaintenanceAlert, record: MaintenanceRecord) -> None:
+    """Completa el FK real sin romper idempotencia sobre alertas históricas."""
+    if alert.maintenance_record_id == record.id:
+        return
+    alert.maintenance_record = record
+    alert.maintenance_record_ref = str(record.id)
+    alert.save(update_fields=["maintenance_record", "maintenance_record_ref"])
 
 
 def _ensure_document_alerts_for_document(doc: VehicleDocument, today: date, result: AlertGenerationResult) -> None:
@@ -313,6 +339,7 @@ def _ensure_maintenance_alerts(record: MaintenanceRecord, today: date, result: A
                     "message": f"Mantención por fecha para {record.vehicle.plate} programada el {record.next_due_date}",
                 },
             )
+            _ensure_maintenance_record_link(alert, record)
             if created:
                 result.created_alerts += 1
             _queue_maintenance_alert(alert, kind_for_tracking="maintenance_date", result=result)
@@ -328,6 +355,7 @@ def _ensure_maintenance_alerts(record: MaintenanceRecord, today: date, result: A
                     "message": f"Mantención vencida por fecha para {record.vehicle.plate} desde el {record.next_due_date}",
                 },
             )
+            _ensure_maintenance_record_link(alert, record)
             if created:
                 result.created_alerts += 1
             _queue_maintenance_alert(alert, kind_for_tracking="maintenance_date_overdue", result=result)
@@ -345,6 +373,7 @@ def _ensure_maintenance_alerts(record: MaintenanceRecord, today: date, result: A
                     "message": f"Mantención por km para {record.vehicle.plate} cerca de {record.next_due_km} km",
                 },
             )
+            _ensure_maintenance_record_link(alert, record)
             if created:
                 result.created_alerts += 1
             _queue_maintenance_alert(alert, kind_for_tracking="maintenance_km", result=result)
@@ -360,6 +389,7 @@ def _ensure_maintenance_alerts(record: MaintenanceRecord, today: date, result: A
                     "message": f"Mantención vencida por km para {record.vehicle.plate}; umbral {record.next_due_km} km",
                 },
             )
+            _ensure_maintenance_record_link(alert, record)
             if created:
                 result.created_alerts += 1
             _queue_maintenance_alert(alert, kind_for_tracking="maintenance_km_overdue", result=result)
@@ -370,26 +400,27 @@ def generate_scheduled_alerts(*, today: date | None = None) -> AlertGenerationRe
     """Punto único de generación diaria para documentos, licencias y mantenimientos."""
     today = today or timezone.localdate()
     result = AlertGenerationResult()
+    batch_size = _alert_generation_batch_size()
     _sync_document_statuses(today)
 
     docs = VehicleDocument.objects.filter(
         is_current=True,
         status__in=[VehicleDocument.STATUS_ACTIVE, VehicleDocument.STATUS_EXPIRED],
-    ).select_related("vehicle", "vehicle__assigned_driver")
-    for doc in docs:
+    ).select_related("vehicle", "vehicle__assigned_driver").order_by("id")
+    for doc in docs.iterator(chunk_size=batch_size):
         _ensure_document_alerts_for_document(doc, today, result)
 
     licenses = DriverLicense.objects.filter(
         is_current=True,
         status__in=[DriverLicense.STATUS_ACTIVE, DriverLicense.STATUS_EXPIRED],
-    ).select_related("driver")
-    for license_doc in licenses:
+    ).select_related("driver").order_by("id")
+    for license_doc in licenses.iterator(chunk_size=batch_size):
         _ensure_document_alerts_for_license(license_doc, today, result)
 
     maintenance_records = MaintenanceRecord.objects.filter(
         status=MaintenanceRecord.STATUS_OPEN,
-    ).select_related("vehicle", "vehicle__assigned_driver")
-    for record in maintenance_records:
+    ).select_related("vehicle", "vehicle__assigned_driver").order_by("id")
+    for record in maintenance_records.iterator(chunk_size=batch_size):
         _ensure_maintenance_alerts(record, today, result)
 
     return result

@@ -14,6 +14,7 @@ from apps.documents.models import (
     VehicleDocument,
     VehicleDocumentAttachment,
 )
+from apps.vehicles.models import Vehicle
 from apps.product_analytics.events import track_event
 from apps.documents.services import replace_driver_license_attachment, replace_vehicle_document_attachment
 
@@ -112,6 +113,9 @@ class VehicleDocumentViewSet(CapabilityScopedViewSet):
             raise ValidationError("vehicle_id, issue_date y expiry_date son obligatorios.")
 
         company_id = self._request_company_id()
+        vehicle = Vehicle.objects.filter(id=vehicle_id, company_id=company_id).first()
+        if vehicle is None:
+            raise ValidationError("vehicle_id no pertenece a la company autenticada.")
         doc_types = [
             VehicleDocument.TYPE_PERMISO_CIRCULACION,
             VehicleDocument.TYPE_TECNOMECANICA,
@@ -122,7 +126,7 @@ class VehicleDocumentViewSet(CapabilityScopedViewSet):
         for doc_type in doc_types:
             obj = VehicleDocument.objects.create(
                 company_id=company_id,
-                vehicle_id=vehicle_id,
+                vehicle=vehicle,
                 type=doc_type,
                 issue_date=issue_date,
                 expiry_date=expiry_date,

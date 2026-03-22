@@ -62,3 +62,4 @@ class MaintenanceCoreTest(TestCase):
 
         self.assertEqual(MaintenanceAlert.objects.count(), 2)
         self.assertEqual(Notification.objects.filter(maintenance_alert__isnull=False).count(), 4)
+        self.assertEqual(MaintenanceAlert.objects.filter(maintenance_record__isnull=False).count(), 2)

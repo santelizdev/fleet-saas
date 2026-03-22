@@ -7,6 +7,7 @@ from io import BytesIO
 from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
+from django.db import transaction
 from PIL import Image, ImageOps
 
 from apps.companies.limits import enforce_upload_limits
@@ -120,28 +121,43 @@ def _replace_attachment_for_parent(*, parent, link_model, relation_field: str, s
     old_attachments = [link.attachment for link in old_links]
     replacing_size_bytes = sum(attachment.size_bytes for attachment in old_attachments)
 
-    attachment = compress_and_store_document_image(
-        company_id=parent.company_id,
-        uploaded_file=uploaded_file,
-        storage_prefix=storage_prefix,
-        actor_id=actor_id,
-        replacing_size_bytes=replacing_size_bytes,
-    )
+    attachment = None
+    try:
+        with transaction.atomic():
+            attachment = compress_and_store_document_image(
+                company_id=parent.company_id,
+                uploaded_file=uploaded_file,
+                storage_prefix=storage_prefix,
+                actor_id=actor_id,
+                replacing_size_bytes=replacing_size_bytes,
+            )
 
-    if old_links:
-        link_model.objects.filter(id__in=[link.id for link in old_links]).delete()
-        for old_attachment in old_attachments:
-            _delete_attachment_if_orphan(old_attachment)
+            if old_links:
+                link_model.objects.filter(id__in=[link.id for link in old_links]).delete()
+                for old_attachment in old_attachments:
+                    _delete_attachment_if_orphan_on_commit(old_attachment)
 
-    link_model.objects.create(
-        company_id=parent.company_id,
-        attachment=attachment,
-        **{relation_field: parent},
-    )
-    return attachment
+            link_model.objects.create(
+                company_id=parent.company_id,
+                attachment=attachment,
+                **{relation_field: parent},
+            )
+            return attachment
+    except Exception:
+        if attachment is not None:
+            _delete_attachment_storage(attachment)
+            Attachment.objects.filter(id=attachment.id).delete()
+        raise
 
 
-def _delete_attachment_if_orphan(attachment: Attachment | None):
+def _delete_attachment_if_orphan_on_commit(attachment: Attachment | None):
+    if attachment is None:
+        return
+    transaction.on_commit(lambda: _delete_attachment_if_orphan(attachment.id))
+
+
+def _delete_attachment_if_orphan(attachment_id: int):
+    attachment = Attachment.objects.filter(id=attachment_id).first()
     if attachment is None:
         return
     if attachment.vehicle_document_links.exists():
@@ -150,6 +166,10 @@ def _delete_attachment_if_orphan(attachment: Attachment | None):
         return
     if attachment.expense_links.exists():
         return
+    _delete_attachment_storage(attachment)
+    attachment.delete()
+
+
+def _delete_attachment_storage(attachment: Attachment):
     if attachment.storage_key and default_storage.exists(attachment.storage_key):
         default_storage.delete(attachment.storage_key)
-    attachment.delete()

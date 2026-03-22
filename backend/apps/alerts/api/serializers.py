@@ -28,6 +28,7 @@ class MaintenanceAlertSerializer(serializers.ModelSerializer):
             "id",
             "company",
             "vehicle",
+            "maintenance_record",
             "maintenance_record_ref",
             "kind",
             "due_date",

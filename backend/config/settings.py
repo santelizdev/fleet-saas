@@ -12,6 +12,7 @@ CSRF_TRUSTED_ORIGINS = [v for v in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS",
 DATABASES = {
   "default": dj_database_url.parse(os.environ["DATABASE_URL"], conn_max_age=60),
 }
+REDIS_CACHE_URL = os.environ.get("REDIS_CACHE_URL") or os.environ.get("REDIS_URL", "")
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
@@ -83,12 +84,25 @@ LOGGING = {
         "level": "INFO",
     },
 }
-CACHES = {
-    "default": {
-        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
-        "LOCATION": "fleet-saas-cache",
+CACHES = (
+    {
+        "default": {
+            "BACKEND": "django_redis.cache.RedisCache",
+            "LOCATION": REDIS_CACHE_URL,
+            "OPTIONS": {
+                "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            },
+            "KEY_PREFIX": "fleet-saas",
+        }
     }
-}
+    if REDIS_CACHE_URL
+    else {
+        "default": {
+            "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
+            "LOCATION": "fleet-saas-cache",
+        }
+    }
+)
 AUTH_USER_MODEL = "accounts.User"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -111,6 +125,7 @@ REPORT_MAX_EXPORTS_PER_DAY = int(os.environ.get("REPORT_MAX_EXPORTS_PER_DAY", "2
 RATE_LIMIT_REPORTS_PER_MIN = int(os.environ.get("RATE_LIMIT_REPORTS_PER_MIN", "60"))
 ALERT_DEFAULT_MAINTENANCE_REMINDER_DAYS = int(os.environ.get("ALERT_DEFAULT_MAINTENANCE_REMINDER_DAYS", "7"))
 ALERT_DEFAULT_MAINTENANCE_REMINDER_KM = int(os.environ.get("ALERT_DEFAULT_MAINTENANCE_REMINDER_KM", "500"))
+ALERT_GENERATION_BATCH_SIZE = int(os.environ.get("ALERT_GENERATION_BATCH_SIZE", "500"))
 DEFAULT_MAX_VEHICLES = int(os.environ.get("DEFAULT_MAX_VEHICLES", "100"))
 DEFAULT_MAX_USERS = int(os.environ.get("DEFAULT_MAX_USERS", "50"))
 DEFAULT_MAX_STORAGE_MB = int(os.environ.get("DEFAULT_MAX_STORAGE_MB", "1024"))
