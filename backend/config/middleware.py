@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.cache import cache
 from django.http import JsonResponse
 
+from apps.audit.services import reset_current_request, set_current_request
 from apps.companies.models import Company
 
 
@@ -79,3 +80,17 @@ class CompanyRateLimitMiddleware:
             cache.set(key, current + 1, timeout=60)
 
         return self.get_response(request)
+
+
+class AuditRequestContextMiddleware:
+    """Expone el request actual a la capa de auditoría y limpia el contexto al finalizar."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        token = set_current_request(request)
+        try:
+            return self.get_response(request)
+        finally:
+            reset_current_request(token)

@@ -5,6 +5,8 @@ from django.utils import timezone
 
 from apps.alerts.models import AlertState, DocumentAlert, JobRun, MaintenanceAlert, Notification
 from apps.alerts.services import send_notification
+from apps.audit.models import AuditLog
+from apps.audit.services import log_audit_event
 
 
 class Command(BaseCommand):
@@ -45,6 +47,21 @@ class Command(BaseCommand):
                         MaintenanceAlert.objects.filter(id=notification.maintenance_alert_id).update(state=AlertState.SENT)
                 except Exception as exc:
                     notification.mark_failed(exc)
+                    log_audit_event(
+                        company_id=notification.company_id,
+                        source=AuditLog.SOURCE_NOTIFICATION,
+                        status=AuditLog.STATUS_FAILED,
+                        action="notification.email.failed",
+                        object_type="Notification",
+                        object_id=notification.id,
+                        summary=f"Fallo envío a {notification.recipient or 'sin destinatario'}",
+                        metadata={
+                            "recipient": notification.recipient,
+                            "channel": notification.channel,
+                            "error": str(exc),
+                            "attempts": notification.attempts,
+                        },
+                    )
                     failed += 1
         except Exception:
             job_status = JobRun.STATUS_FAILED

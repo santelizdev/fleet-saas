@@ -205,7 +205,7 @@ def navigation(request) -> list[dict[str, Any]]:
                 {
                     "title": _("Auditoría"),
                     "icon": "history",
-                    "link": reverse_lazy("admin:audit_auditlog_changelist"),
+                    "link": reverse_lazy("admin:audit_auditlog_overview"),
                 },
             ],
         },

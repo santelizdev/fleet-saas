@@ -103,7 +103,7 @@ def admin_recent_activity(request):
         items.append(
             {
                 "when": log.created_at,
-                "title": log.action.replace(".", " ").title(),
+                "title": log.summary or log.action.replace(".", " ").title(),
                 "subtitle": f"{log.object_type}:{log.object_id}",
                 "meta": _actor_label(log.actor),
                 "kind": "audit",

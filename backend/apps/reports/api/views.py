@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 
 from apps.accounts.permissions import HasCapability
 from apps.audit.models import AuditLog
+from apps.audit.services import log_audit_event
 from apps.companies.limits import enforce_export_limits, get_effective_limits
 from apps.product_analytics.events import track_event
 from apps.reports.models import ReportExportLog
@@ -112,13 +113,17 @@ class ExportVehicleCostCSVView(CapabilityAPIView):
             event_name="report_exported",
             payload={"report_type": "vehicle_costs", "rows": len(rows)},
         )
-        AuditLog.objects.create(
+        log_audit_event(
+            request=request,
             company_id=company_id,
             actor_id=request.user.id,
+            source=AuditLog.SOURCE_API,
+            status=AuditLog.STATUS_SUCCESS,
             action="report.export.vehicle_costs",
             object_type="ReportExportLog",
             object_id="vehicle_costs",
-            after_json={"format": "csv", "row_count": len(rows)},
+            summary="Exportación de costos por vehículo completada",
+            after={"format": "csv", "row_count": len(rows)},
         )
 
         response = HttpResponse(content_type="text/csv")
@@ -180,13 +185,17 @@ class ExportOperationalSummaryPDFView(CapabilityAPIView):
             event_name="report_exported",
             payload={"report_type": "operational_summary", "format": "pdf", "rows": row_count},
         )
-        AuditLog.objects.create(
+        log_audit_event(
+            request=request,
             company_id=company_id,
             actor_id=request.user.id,
+            source=AuditLog.SOURCE_API,
+            status=AuditLog.STATUS_SUCCESS,
             action="report.export.operational_summary",
             object_type="ReportExportLog",
             object_id="operational_summary",
-            after_json={"format": "pdf", "row_count": row_count},
+            summary="Exportación del resumen operacional completada",
+            after={"format": "pdf", "row_count": row_count},
         )
 
         response = HttpResponse(pdf_bytes, content_type="application/pdf")

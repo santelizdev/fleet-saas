@@ -5,6 +5,7 @@ from rest_framework.response import Response
 
 from apps.accounts.permissions import HasCapability
 from apps.audit.models import AuditLog
+from apps.audit.services import log_audit_event
 from apps.companies.limits import enforce_upload_limits
 from apps.expenses.models import ExpenseCategory, VehicleExpense, VehicleExpenseAttachment
 from apps.product_analytics.events import track_event
@@ -57,13 +58,17 @@ class VehicleExpenseViewSet(ExpenseCapabilityViewSet):
     def perform_create(self, serializer):
         company_id = self._request_company_id()
         expense = serializer.save(company_id=company_id, reported_by=self.request.user)
-        AuditLog.objects.create(
+        log_audit_event(
+            request=self.request,
             company_id=company_id,
             actor_id=self.request.user.id,
+            source=AuditLog.SOURCE_API,
+            status=AuditLog.STATUS_SUCCESS,
             action="expense.report",
             object_type="VehicleExpense",
             object_id=str(expense.id),
-            after_json={"amount_clp": expense.amount_clp, "vehicle_id": expense.vehicle_id},
+            summary=f"Gasto #{expense.id} reportado",
+            after={"amount_clp": expense.amount_clp, "vehicle_id": expense.vehicle_id},
         )
         track_event(
             company_id=company_id,
@@ -78,13 +83,17 @@ class VehicleExpenseViewSet(ExpenseCapabilityViewSet):
         expense.approval_status = VehicleExpense.APPROVAL_APPROVED
         expense.approved_by = request.user
         expense.save(update_fields=["approval_status", "approved_by", "updated_at"])
-        AuditLog.objects.create(
+        log_audit_event(
+            request=request,
             company_id=expense.company_id,
             actor_id=request.user.id,
+            source=AuditLog.SOURCE_API,
+            status=AuditLog.STATUS_SUCCESS,
             action="expense.approve",
             object_type="VehicleExpense",
             object_id=str(expense.id),
-            after_json={"approval_status": expense.approval_status},
+            summary=f"Gasto #{expense.id} aprobado",
+            after={"approval_status": expense.approval_status},
         )
         track_event(company_id=expense.company_id, actor_id=request.user.id, event_name="expense_approved", payload={"expense_id": expense.id})
         return Response(self.get_serializer(expense).data)
@@ -94,13 +103,17 @@ class VehicleExpenseViewSet(ExpenseCapabilityViewSet):
         expense = self.get_object()
         expense.approval_status = VehicleExpense.APPROVAL_REJECTED
         expense.save(update_fields=["approval_status", "updated_at"])
-        AuditLog.objects.create(
+        log_audit_event(
+            request=request,
             company_id=expense.company_id,
             actor_id=request.user.id,
+            source=AuditLog.SOURCE_API,
+            status=AuditLog.STATUS_WARNING,
             action="expense.reject",
             object_type="VehicleExpense",
             object_id=str(expense.id),
-            after_json={"approval_status": expense.approval_status},
+            summary=f"Gasto #{expense.id} rechazado",
+            after={"approval_status": expense.approval_status},
         )
         return Response(self.get_serializer(expense).data)
 
@@ -112,13 +125,17 @@ class VehicleExpenseViewSet(ExpenseCapabilityViewSet):
         expense.payment_status = VehicleExpense.PAYMENT_PAID
         expense.paid_by = request.user
         expense.save(update_fields=["payment_status", "paid_by", "updated_at"])
-        AuditLog.objects.create(
+        log_audit_event(
+            request=request,
             company_id=expense.company_id,
             actor_id=request.user.id,
+            source=AuditLog.SOURCE_API,
+            status=AuditLog.STATUS_SUCCESS,
             action="expense.pay",
             object_type="VehicleExpense",
             object_id=str(expense.id),
-            after_json={"payment_status": expense.payment_status},
+            summary=f"Gasto #{expense.id} pagado",
+            after={"payment_status": expense.payment_status},
         )
         return Response(self.get_serializer(expense).data)
 

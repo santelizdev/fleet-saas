@@ -94,7 +94,7 @@ def _build_recent_activity(filter_kwargs: dict):
         timeline.append(
             {
                 "when": log.created_at,
-                "title": log.action,
+                "title": log.summary or log.action,
                 "subtitle": f"{log.object_type}:{log.object_id}",
                 "actor": getattr(log.actor, "name", "Sistema") or getattr(log.actor, "email", "Sistema"),
                 "source": "audit",

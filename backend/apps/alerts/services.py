@@ -12,6 +12,8 @@ from django.db import transaction
 from django.utils import timezone
 
 from apps.alerts.models import DocumentAlert, MaintenanceAlert, Notification
+from apps.audit.models import AuditLog
+from apps.audit.services import log_audit_event
 from apps.documents.models import DriverLicense, VehicleDocument
 from apps.maintenance.models import MaintenanceRecord
 from apps.product_analytics.events import track_event
@@ -427,6 +429,20 @@ def send_notification(notification: Notification) -> None:
             from_email=getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@fleet.local"),
             recipient_list=[notification.recipient],
             fail_silently=False,
+        )
+        log_audit_event(
+            company_id=notification.company_id,
+            source=AuditLog.SOURCE_NOTIFICATION,
+            status=AuditLog.STATUS_SUCCESS,
+            action="notification.email.sent",
+            object_type="Notification",
+            object_id=notification.id,
+            summary=f"Email enviado a {notification.recipient}",
+            metadata={
+                "recipient": notification.recipient,
+                "channel": notification.channel,
+                "subject": subject,
+            },
         )
         return
 

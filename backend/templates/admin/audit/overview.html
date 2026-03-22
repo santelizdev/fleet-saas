@@ -1,0 +1,108 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+<div class="fleet-dashboard">
+  <div class="fleet-page-header">
+    <div>
+      <p class="fleet-eyebrow">Auditoría</p>
+      <h1>Centro de auditoría</h1>
+      <p class="fleet-section-subtitle">Monitoreo de accesos, cambios operativos, eliminaciones y resultados de notificaciones.</p>
+    </div>
+  </div>
+
+  <section class="fleet-card fleet-section">
+    <form method="get" class="fleet-report-filters">
+      {% if request.user.is_superuser %}
+      <label>
+        <span>Empresa</span>
+        <select name="company">
+          <option value="">Todas</option>
+          {% for company in audit_companies %}
+          <option value="{{ company.id }}" {% if audit_filters.company == company.id|stringformat:"s" %}selected{% endif %}>{{ company.name }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      {% endif %}
+      <label>
+        <span>Fuente</span>
+        <select name="source">
+          <option value="">Todas</option>
+          {% for value, label in audit_sources %}
+          <option value="{{ value }}" {% if audit_filters.source == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Resultado</span>
+        <select name="status">
+          <option value="">Todos</option>
+          {% for value, label in audit_statuses %}
+          <option value="{{ value }}" {% if audit_filters.status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Ventana</span>
+        <select name="days">
+          {% for option in audit_day_options %}
+          <option value="{{ option }}" {% if audit_filters.days|stringformat:"s" == option|stringformat:"s" %}selected{% endif %}>Últimos {{ option }} días</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Búsqueda</span>
+        <input type="text" name="q" value="{{ audit_filters.q }}" placeholder="acción, resumen, objeto, request id">
+      </label>
+      <button type="submit">Aplicar filtros</button>
+    </form>
+  </section>
+
+  <div class="fleet-kpi-grid fleet-kpi-grid-three">
+    <article class="fleet-card"><span class="fleet-kpi-label">Eventos</span><strong class="fleet-kpi-value">{{ audit_kpis.total }}</strong></article>
+    <article class="fleet-card fleet-card-emphasis"><span class="fleet-kpi-label">Fallidos</span><strong class="fleet-kpi-value">{{ audit_kpis.failed }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Accesos</span><strong class="fleet-kpi-value">{{ audit_kpis.auth }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Admin</span><strong class="fleet-kpi-value">{{ audit_kpis.admin }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">API</span><strong class="fleet-kpi-value">{{ audit_kpis.api }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Notificaciones</span><strong class="fleet-kpi-value">{{ audit_kpis.notifications }}</strong></article>
+  </div>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header">
+      <h2>Eventos recientes</h2>
+      <a href="{% url 'admin:audit_auditlog_changelist' %}">Ver listado completo</a>
+    </div>
+    <div class="fleet-table-shell">
+      <table class="fleet-table fleet-table-compact">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Fuente</th>
+            <th>Resultado</th>
+            <th>Actor</th>
+            <th>Acción</th>
+            <th>Resumen</th>
+            <th>Objeto</th>
+            <th>Request</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in audit_logs %}
+          <tr>
+            <td>{{ item.created_at }}</td>
+            <td>{{ item.get_source_display }}</td>
+            <td>{{ item.get_status_display }}</td>
+            <td>{% if item.actor %}{{ item.actor.name|default:item.actor.email }}{% else %}Sistema{% endif %}</td>
+            <td>{{ item.action }}</td>
+            <td>{{ item.summary|default:"-" }}</td>
+            <td>{{ item.object_type }}:{{ item.object_id }}</td>
+            <td>{{ item.request_id|default:"-" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8">No hay eventos en la ventana seleccionada.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}
