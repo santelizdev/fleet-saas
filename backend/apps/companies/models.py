@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 
 class Company(models.Model):
@@ -11,20 +12,20 @@ class Company(models.Model):
     STATUS_SUSPENDED = "suspended"
 
     STATUS_CHOICES = [
-        (STATUS_ACTIVE, "Active"),
-        (STATUS_SUSPENDED, "Suspended"),
+        (STATUS_ACTIVE, _("Activa")),
+        (STATUS_SUSPENDED, _("Suspendida")),
     ]
 
     name = models.CharField(max_length=255)
     rut = models.CharField(
         max_length=32,
         unique=True,
-        help_text="RUT de la empresa. Único en el sistema.",
+        help_text=_("RUT de la empresa. Único en el sistema."),
     )
     plan = models.CharField(
         max_length=64,
         default="trial",
-        help_text="Nombre del plan. Por ahora sirve para límites internos y futura facturación.",
+        help_text=_("Nombre del plan. Por ahora sirve para límites internos y futura facturación."),
     )
     status = models.CharField(
         max_length=16,
@@ -34,6 +35,8 @@ class Company(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("empresa")
+        verbose_name_plural = _("empresas")
         indexes = [
             models.Index(fields=["rut"]),
             models.Index(fields=["status"]),
@@ -59,11 +62,13 @@ class Branch(models.Model):
         max_length=64,
         blank=True,
         default="",
-        help_text="Código interno del centro de costo (si el cliente lo usa).",
+        help_text=_("Código interno del centro de costo (si el cliente lo usa)."),
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("sucursal")
+        verbose_name_plural = _("sucursales")
         constraints = [
             models.UniqueConstraint(
                 fields=["company", "name"],
@@ -91,6 +96,10 @@ class CompanyLimit(models.Model):
     max_exports_per_day = models.PositiveIntegerField(default=20)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _("membresía")
+        verbose_name_plural = _("membresías")
 
     def __str__(self) -> str:
         return f"limits:{self.company_id}"

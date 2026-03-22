@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.companies.models import Company
 from apps.documents.models import Attachment
@@ -16,6 +17,8 @@ class ExpenseCategory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("categoría de gasto")
+        verbose_name_plural = _("categorías de gasto")
         constraints = [
             models.UniqueConstraint(fields=["company", "name"], name="uniq_expense_category_company_name"),
         ]
@@ -30,16 +33,16 @@ class VehicleExpense(models.Model):
     APPROVAL_APPROVED = "approved"
     APPROVAL_REJECTED = "rejected"
     APPROVAL_CHOICES = [
-        (APPROVAL_REPORTED, "Reported"),
-        (APPROVAL_APPROVED, "Approved"),
-        (APPROVAL_REJECTED, "Rejected"),
+        (APPROVAL_REPORTED, _("Reportado")),
+        (APPROVAL_APPROVED, _("Aprobado")),
+        (APPROVAL_REJECTED, _("Rechazado")),
     ]
 
     PAYMENT_UNPAID = "unpaid"
     PAYMENT_PAID = "paid"
     PAYMENT_CHOICES = [
-        (PAYMENT_UNPAID, "Unpaid"),
-        (PAYMENT_PAID, "Paid"),
+        (PAYMENT_UNPAID, _("Pendiente")),
+        (PAYMENT_PAID, _("Pagado")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="vehicle_expenses")
@@ -63,8 +66,8 @@ class VehicleExpense(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = "Gasto de vehículo"
-        verbose_name_plural = "Gastos de vehículo"
+        verbose_name = _("gasto de vehículo")
+        verbose_name_plural = _("gastos de vehículo")
         indexes = [
             models.Index(fields=["company", "vehicle", "expense_date"]),
             models.Index(fields=["company", "approval_status", "payment_status"]),
@@ -101,6 +104,8 @@ class VehicleExpenseAttachment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("adjunto de gasto")
+        verbose_name_plural = _("adjuntos de gasto")
         constraints = [
             models.UniqueConstraint(fields=["vehicle_expense", "attachment"], name="uniq_vehicle_expense_attachment"),
         ]

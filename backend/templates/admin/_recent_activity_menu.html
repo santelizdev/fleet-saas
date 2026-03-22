@@ -1,10 +1,11 @@
+{% load i18n %}
 <div class="fleet-header-notifications" x-data="{ open: false }" @keydown.escape.window="open = false">
   <button
     type="button"
     class="fleet-header-icon"
     @click="open = !open"
     :aria-expanded="open.toString()"
-    aria-label="Abrir actividad reciente"
+    aria-label="{% trans 'Abrir actividad reciente' %}"
   >
     <span class="material-symbols-outlined">notifications</span>
     {% if admin_recent_activity_count %}
@@ -21,10 +22,10 @@
   >
     <div class="fleet-header-panel-head">
       <div>
-        <span class="fleet-eyebrow">Actividad</span>
-        <strong>Recientes de tu cuenta</strong>
+        <span class="fleet-eyebrow">{% trans "Actividad" %}</span>
+        <strong>{% trans "Recientes de tu cuenta" %}</strong>
       </div>
-      <a href="{{ admin_recent_activity_url }}">Ver centro</a>
+      <a href="{{ admin_recent_activity_url }}">{% trans "Ver centro" %}</a>
     </div>
 
     <div class="fleet-header-feed">
@@ -44,8 +45,8 @@
       {% endfor %}
       {% else %}
       <div class="fleet-header-feed-empty">
-        <strong>Todo en calma</strong>
-        <small>Aún no hay eventos recientes para esta cuenta.</small>
+        <strong>{% trans "Todo en calma" %}</strong>
+        <small>{% trans "Aún no hay eventos recientes para esta cuenta." %}</small>
       </div>
       {% endif %}
     </div>

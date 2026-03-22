@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.companies.models import Company, Branch
 from apps.accounts.models import User
@@ -15,8 +16,8 @@ class Vehicle(models.Model):
     STATUS_INACTIVE = "inactive"
 
     STATUS_CHOICES = [
-        (STATUS_ACTIVE, "Active"),
-        (STATUS_INACTIVE, "Inactive"),
+        (STATUS_ACTIVE, _("Activo")),
+        (STATUS_INACTIVE, _("Inactivo")),
     ]
 
     company = models.ForeignKey(
@@ -33,7 +34,7 @@ class Vehicle(models.Model):
     )
     plate = models.CharField(
         max_length=16,
-        help_text="Patente. Única por empresa.",
+        help_text=_("Patente. Única por empresa."),
     )
     brand = models.CharField(max_length=64, blank=True, default="")
     model = models.CharField(max_length=64, blank=True, default="")
@@ -50,12 +51,14 @@ class Vehicle(models.Model):
         null=True,
         blank=True,
         related_name="assigned_vehicles",
-        help_text="Piloto responsable (si aplica).",
+        help_text=_("Piloto responsable (si aplica)."),
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("vehículo")
+        verbose_name_plural = _("vehículos")
         constraints = [
             models.UniqueConstraint(
                 fields=["company", "plate"],

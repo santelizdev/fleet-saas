@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.files.storage import default_storage
 from django.db import models, transaction
+from django.utils.translation import gettext_lazy as _
 
 from apps.accounts.models import User
 from apps.companies.models import Company
@@ -20,6 +21,8 @@ class Attachment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("adjunto")
+        verbose_name_plural = _("adjuntos")
         indexes = [
             models.Index(fields=["company", "created_at"]),
             models.Index(fields=["company", "mime_type"]),
@@ -45,12 +48,12 @@ class VehicleDocument(models.Model):
     TYPE_OTRO = "otro"
 
     TYPE_CHOICES = [
-        (TYPE_PERMISO_CIRCULACION, "Permiso de circulacion"),
-        (TYPE_REVISION_TECNICA, "Revision tecnica"),
-        (TYPE_TECNOMECANICA, "Tecnomecanica"),
+        (TYPE_PERMISO_CIRCULACION, _("Permiso de circulación")),
+        (TYPE_REVISION_TECNICA, _("Revisión técnica")),
+        (TYPE_TECNOMECANICA, _("Tecnomecánica")),
         (TYPE_SEGURO, "SOAP"),
-        (TYPE_GASES, "Gases"),
-        (TYPE_OTRO, "Otro"),
+        (TYPE_GASES, _("Gases")),
+        (TYPE_OTRO, _("Otro")),
     ]
 
     STATUS_ACTIVE = "active"
@@ -58,9 +61,9 @@ class VehicleDocument(models.Model):
     STATUS_EXPIRED = "expired"
 
     STATUS_CHOICES = [
-        (STATUS_ACTIVE, "Active"),
-        (STATUS_REPLACED, "Replaced"),
-        (STATUS_EXPIRED, "Expired"),
+        (STATUS_ACTIVE, _("Activo")),
+        (STATUS_REPLACED, _("Reemplazado")),
+        (STATUS_EXPIRED, _("Vencido")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="vehicle_documents")
@@ -89,6 +92,8 @@ class VehicleDocument(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("documento del vehículo")
+        verbose_name_plural = _("documentos del vehículo")
         indexes = [
             models.Index(fields=["company", "vehicle", "type"]),
             models.Index(fields=["company", "expiry_date"]),
@@ -161,6 +166,8 @@ class VehicleDocumentAttachment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("adjunto de documento")
+        verbose_name_plural = _("adjuntos de documento")
         constraints = [
             models.UniqueConstraint(
                 fields=["vehicle_document", "attachment"],
@@ -188,9 +195,9 @@ class DriverLicense(models.Model):
     STATUS_EXPIRED = "expired"
 
     STATUS_CHOICES = [
-        (STATUS_ACTIVE, "Active"),
-        (STATUS_REPLACED, "Replaced"),
-        (STATUS_EXPIRED, "Expired"),
+        (STATUS_ACTIVE, _("Activa")),
+        (STATUS_REPLACED, _("Reemplazada")),
+        (STATUS_EXPIRED, _("Vencida")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="driver_licenses")
@@ -219,6 +226,8 @@ class DriverLicense(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("licencia de conducir")
+        verbose_name_plural = _("licencias de conducir")
         constraints = [
             models.UniqueConstraint(
                 fields=["company", "driver", "license_number", "is_current"],
@@ -295,6 +304,8 @@ class DriverLicenseAttachment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("adjunto de licencia")
+        verbose_name_plural = _("adjuntos de licencia")
         constraints = [
             models.UniqueConstraint(
                 fields=["driver_license", "attachment"],

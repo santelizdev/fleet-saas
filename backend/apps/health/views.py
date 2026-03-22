@@ -6,6 +6,7 @@ from django.core.mail import send_mail
 from django.db import connection
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext_lazy as _
 
 import redis
 
@@ -24,15 +25,15 @@ def home_landing(request):
         form = QuoteRequestForm(request.POST)
         if form.is_valid():
             payload = form.cleaned_data
-            subject = f"Nueva cotización Fleet: {payload['company_name']}"
+            subject = f"{_('Nueva cotización Fleet')}: {payload['company_name']}"
             body = (
-                "Nueva solicitud desde la landing de Fleet SaaS\n\n"
-                f"Nombre: {payload['full_name']}\n"
-                f"Empresa: {payload['company_name']}\n"
+                f"{_('Nueva solicitud desde la landing de Fleet SaaS')}\n\n"
+                f"{_('Nombre')}: {payload['full_name']}\n"
+                f"{_('Empresa')}: {payload['company_name']}\n"
                 f"Email: {payload['email']}\n"
-                f"Teléfono: {payload['phone']}\n"
-                f"Vehículos: {payload['fleet_size']}\n\n"
-                f"Contexto:\n{payload['message'] or 'Sin comentario adicional.'}\n"
+                f"{_('Teléfono')}: {payload['phone']}\n"
+                f"{_('Vehículos')}: {payload['fleet_size']}\n\n"
+                f"{_('Contexto')}:\n{payload['message'] or _('Sin comentario adicional.')}\n"
             )
             send_mail(
                 subject,
@@ -41,7 +42,7 @@ def home_landing(request):
                 [settings.SUPPORT_EMAIL],
                 fail_silently=True,
             )
-            messages.success(request, "Recibimos tu solicitud. Te contactaremos a la brevedad.")
+            messages.success(request, _("Recibimos tu solicitud. Te contactaremos a la brevedad."))
             return redirect("home")
     else:
         form = QuoteRequestForm()
@@ -52,9 +53,9 @@ def home_landing(request):
         {
             "quote_form": form,
             "marketing_stats": [
-                {"value": "+10", "label": "Módulos operativos"},
-                {"value": "24/7", "label": "Visibilidad de flota"},
-                {"value": "<48h", "label": "Tiempo de puesta en marcha"},
+                {"value": "+10", "label": _("Módulos operativos")},
+                {"value": "24/7", "label": _("Visibilidad de flota")},
+                {"value": "<48h", "label": _("Tiempo de puesta en marcha")},
             ],
         },
     )

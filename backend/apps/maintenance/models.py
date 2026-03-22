@@ -3,6 +3,7 @@ from __future__ import annotations
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
+from django.utils.translation import gettext_lazy as _
 
 from apps.companies.models import Company
 from apps.vehicles.models import Vehicle
@@ -12,17 +13,17 @@ class MaintenanceRecord(models.Model):
     TYPE_PREVENTIVE = "preventive"
     TYPE_CORRECTIVE = "corrective"
     TYPE_CHOICES = [
-        (TYPE_PREVENTIVE, "Preventive"),
-        (TYPE_CORRECTIVE, "Corrective"),
+        (TYPE_PREVENTIVE, _("Preventivo")),
+        (TYPE_CORRECTIVE, _("Correctivo")),
     ]
 
     STATUS_OPEN = "open"
     STATUS_COMPLETED = "completed"
     STATUS_CANCELLED = "cancelled"
     STATUS_CHOICES = [
-        (STATUS_OPEN, "Open"),
-        (STATUS_COMPLETED, "Completed"),
-        (STATUS_CANCELLED, "Cancelled"),
+        (STATUS_OPEN, _("Abierto")),
+        (STATUS_COMPLETED, _("Completado")),
+        (STATUS_CANCELLED, _("Cancelado")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="maintenance_records")
@@ -45,6 +46,8 @@ class MaintenanceRecord(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("mantención")
+        verbose_name_plural = _("mantenciones")
         indexes = [
             models.Index(fields=["company", "vehicle", "service_date"]),
             models.Index(fields=["company", "status"]),
@@ -66,9 +69,9 @@ class VehicleOdometerLog(models.Model):
     SOURCE_EXPENSE = "expense"
     SOURCE_MAINTENANCE = "maintenance"
     SOURCE_CHOICES = [
-        (SOURCE_MANUAL, "Manual"),
-        (SOURCE_EXPENSE, "Expense"),
-        (SOURCE_MAINTENANCE, "Maintenance"),
+        (SOURCE_MANUAL, _("Manual")),
+        (SOURCE_EXPENSE, _("Gasto")),
+        (SOURCE_MAINTENANCE, _("Mantención")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="odometer_logs")
@@ -86,6 +89,8 @@ class VehicleOdometerLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("registro de odómetro")
+        verbose_name_plural = _("registros de odómetro")
         indexes = [
             models.Index(fields=["company", "vehicle", "created_at"]),
             models.Index(fields=["company", "vehicle", "km"]),

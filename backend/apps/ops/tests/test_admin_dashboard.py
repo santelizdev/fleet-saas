@@ -37,5 +37,16 @@ class AdminDashboardCallbackTest(TestCase):
         self.assertContains(response, 'href="/static/admin/css/operations_dashboard.css"', html=False)
         self.assertContains(response, "/static/admin/branding/rutacore-logo.svg", html=False)
         self.assertContains(response, "Dashboard analitico")
-        self.assertContains(response, "Light")
-        self.assertContains(response, "Dark")
+        self.assertContains(response, "fleet-language-switcher", html=False)
+        self.assertContains(response, 'name="language" type="hidden" value="es"', html=False)
+        self.assertContains(response, 'name="language" type="hidden" value="en"', html=False)
+        self.assertNotContains(response, "Light")
+        self.assertNotContains(response, "Dark")
+
+    def test_language_switch_updates_cookie(self):
+        self.client.force_login(self.superuser)
+
+        response = self.client.post("/i18n/setlang/", {"language": "en", "next": "/admin/"})
+
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(response.cookies["django_language"].value, "en")

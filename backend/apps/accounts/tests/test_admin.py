@@ -48,8 +48,8 @@ class UserAdminFormTest(TestCase):
             {"_popup": 1, "_to_field": "id"},
         )
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Password confirmation")
-        self.assertContains(response, "company")
+        self.assertContains(response, "Confirmación de contraseña")
+        self.assertContains(response, "Empresa")
 
     def test_user_admin_excludes_driver_profiles(self):
         superuser = User.objects.create_superuser(

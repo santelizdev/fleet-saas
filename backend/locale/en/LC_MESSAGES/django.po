@@ -1,0 +1,793 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-22 18:19+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+#: apps/accounts/admin.py:50
+msgid "Perfil"
+msgstr "Profile"
+
+#: apps/accounts/admin.py:52
+msgid "Permisos de acceso"
+msgstr "Access permissions"
+
+#: apps/accounts/admin.py:60 apps/audit/apps.py:8 config/unfold.py:206
+msgid "Auditoría"
+msgstr "Audit"
+
+#: apps/accounts/admin.py:85 apps/accounts/forms.py:20
+#: apps/accounts/forms.py:53 apps/documents/models.py:64
+#: apps/vehicles/models.py:19
+msgid "Activo"
+msgstr "Active"
+
+#: apps/accounts/admin.py:85 apps/vehicles/models.py:20
+msgid "Inactivo"
+msgstr "Inactive"
+
+#: apps/accounts/admin.py:87 apps/accounts/forms.py:16
+#: apps/accounts/forms.py:49 apps/alerts/message_center.py:32
+#: apps/alerts/models.py:141
+msgid "Correo"
+msgstr "Email"
+
+#: apps/accounts/admin.py:91 apps/accounts/forms.py:17
+#: apps/accounts/forms.py:50 apps/health/forms.py:10 apps/health/views.py:31
+msgid "Nombre"
+msgstr "Name"
+
+#: apps/accounts/admin.py:95 apps/accounts/forms.py:19
+#: apps/accounts/forms.py:52 apps/health/forms.py:11 apps/health/views.py:32
+msgid "Empresa"
+msgstr "Company"
+
+#: apps/accounts/admin.py:99
+msgid "Acceso admin"
+msgstr "Admin access"
+
+#: apps/accounts/admin.py:103
+msgid "Creado"
+msgstr "Created"
+
+#: apps/accounts/apps.py:8
+msgid "Cuentas"
+msgstr "Accounts"
+
+#: apps/accounts/forms.py:9 apps/accounts/forms.py:41
+msgid "Contraseña"
+msgstr "Password"
+
+#: apps/accounts/forms.py:10
+msgid "Confirmación de contraseña"
+msgstr "Password confirmation"
+
+#: apps/accounts/forms.py:18 apps/accounts/forms.py:51 apps/health/forms.py:13
+#: apps/health/views.py:34
+msgid "Teléfono"
+msgstr "Phone"
+
+#: apps/accounts/forms.py:21 apps/accounts/forms.py:54
+msgid "Acceso al admin"
+msgstr "Admin access"
+
+#: apps/accounts/forms.py:42
+msgid ""
+"Las contraseñas no se almacenan en texto plano. Usa el formulario de cambio "
+"para actualizarla."
+msgstr ""
+"Passwords are not stored in plain text. Use the change form to update it."
+
+#: apps/accounts/forms.py:55
+msgid "Superusuario"
+msgstr "Superuser"
+
+#: apps/accounts/models.py:80
+msgid "Permite acceder al admin de Django."
+msgstr "Allows access to the Django admin."
+
+#: apps/accounts/models.py:90
+msgid "usuario"
+msgstr "user"
+
+#: apps/accounts/models.py:91
+msgid "usuarios"
+msgstr "users"
+
+#: apps/accounts/models.py:120
+msgid "capacidad"
+msgstr "capability"
+
+#: apps/accounts/models.py:121
+msgid "capacidades"
+msgstr "capabilities"
+
+#: apps/accounts/models.py:153
+msgid "rol"
+msgstr "role"
+
+#: apps/accounts/models.py:154
+msgid "roles"
+msgstr "roles"
+
+#: apps/accounts/models.py:178
+msgid "capacidad del rol"
+msgstr "role capability"
+
+#: apps/accounts/models.py:179
+msgid "capacidades del rol"
+msgstr "role capabilities"
+
+#: apps/accounts/models.py:198
+msgid "rol de usuario"
+msgstr "user role"
+
+#: apps/accounts/models.py:199
+msgid "roles de usuario"
+msgstr "user roles"
+
+#: apps/accounts/models.py:239
+msgid "conductor"
+msgstr "driver"
+
+#: apps/accounts/models.py:240
+msgid "conductores"
+msgstr "drivers"
+
+#: apps/alerts/admin_views.py:15
+msgid "Centro de mensajes"
+msgstr "Message center"
+
+#: apps/alerts/apps.py:8 config/unfold.py:132
+msgid "Alertas"
+msgstr "Alerts"
+
+#: apps/alerts/message_center.py:30
+msgid "Todos"
+msgstr "All"
+
+#: apps/alerts/message_center.py:31
+msgid "Internos"
+msgstr "Internal"
+
+#: apps/alerts/message_center.py:103
+msgid "Sin destinatario"
+msgstr "No recipient"
+
+#: apps/alerts/models.py:17 apps/expenses/models.py:44
+msgid "Pendiente"
+msgstr "Pending"
+
+#: apps/alerts/models.py:18 apps/alerts/models.py:150
+msgid "Enviada"
+msgstr "Sent"
+
+#: apps/alerts/models.py:19
+msgid "Acusada"
+msgstr "Acknowledged"
+
+#: apps/alerts/models.py:20
+msgid "Resuelta"
+msgstr "Resolved"
+
+#: apps/alerts/models.py:27
+msgid "Por vencer"
+msgstr "Due soon"
+
+#: apps/alerts/models.py:28 apps/documents/models.py:66
+msgid "Vencido"
+msgstr "Expired"
+
+#: apps/alerts/models.py:54
+msgid "alerta documental"
+msgstr "document alert"
+
+#: apps/alerts/models.py:55
+msgid "alertas documentales"
+msgstr "document alerts"
+
+#: apps/alerts/models.py:83
+msgid "Por fecha"
+msgstr "By date"
+
+#: apps/alerts/models.py:84
+msgid "Por kilometraje"
+msgstr "By mileage"
+
+#: apps/alerts/models.py:85
+msgid "Atrasada por fecha"
+msgstr "Overdue by date"
+
+#: apps/alerts/models.py:86
+msgid "Atrasada por kilometraje"
+msgstr "Overdue by mileage"
+
+#: apps/alerts/models.py:107
+msgid "alerta de mantención"
+msgstr "maintenance alert"
+
+#: apps/alerts/models.py:108
+msgid "alertas de mantención"
+msgstr "maintenance alerts"
+
+#: apps/alerts/models.py:142
+msgid "Interna"
+msgstr "In-app"
+
+#: apps/alerts/models.py:149
+msgid "En cola"
+msgstr "Queued"
+
+#: apps/alerts/models.py:151
+msgid "Fallida"
+msgstr "Failed"
+
+#: apps/alerts/message_center.py:39
+msgid "Enviados"
+msgstr "Sent"
+
+#: apps/alerts/message_center.py:40
+msgid "Fallidos"
+msgstr "Failed"
+
+#: apps/alerts/models.py:180
+msgid "notificación"
+msgstr "notification"
+
+#: apps/alerts/models.py:181
+msgid "notificaciones"
+msgstr "notifications"
+
+#: apps/alerts/models.py:222
+msgid "Exitoso"
+msgstr "Successful"
+
+#: apps/alerts/models.py:223
+msgid "Fallido"
+msgstr "Failed"
+
+#: apps/alerts/models.py:234
+msgid "ejecución de tarea"
+msgstr "job run"
+
+#: apps/alerts/models.py:235
+msgid "ejecuciones de tareas"
+msgstr "job runs"
+
+#: apps/companies/admin_views.py:21 config/unfold.py:181
+msgid "Membresías"
+msgstr "Memberships"
+
+#: apps/companies/apps.py:8 config/unfold.py:186
+msgid "Empresas"
+msgstr "Companies"
+
+#: apps/companies/models.py:15 apps/documents/models.py:198
+msgid "Activa"
+msgstr "Active"
+
+#: apps/companies/models.py:16
+msgid "Suspendida"
+msgstr "Suspended"
+
+#: apps/companies/models.py:23
+msgid "RUT de la empresa. Único en el sistema."
+msgstr "Company tax ID. Unique in the system."
+
+#: apps/companies/models.py:28
+msgid ""
+"Nombre del plan. Por ahora sirve para límites internos y futura facturación."
+msgstr "Plan name. For now it is used for internal limits and future billing."
+
+#: apps/companies/models.py:38
+msgid "empresa"
+msgstr "company"
+
+#: apps/companies/models.py:39
+msgid "empresas"
+msgstr "companies"
+
+#: apps/companies/models.py:65
+msgid "Código interno del centro de costo (si el cliente lo usa)."
+msgstr "Internal cost center code (if the client uses it)."
+
+#: apps/companies/models.py:70
+msgid "sucursal"
+msgstr "branch"
+
+#: apps/companies/models.py:71
+msgid "sucursales"
+msgstr "branches"
+
+#: apps/companies/models.py:101
+msgid "membresía"
+msgstr "membership"
+
+#: apps/companies/models.py:102
+msgid "membresías"
+msgstr "memberships"
+
+#: apps/documents/apps.py:8 config/unfold.py:72
+msgid "Documentos"
+msgstr "Documents"
+
+#: apps/documents/models.py:24
+msgid "adjunto"
+msgstr "attachment"
+
+#: apps/documents/models.py:25
+msgid "adjuntos"
+msgstr "attachments"
+
+#: apps/documents/models.py:51
+msgid "Permiso de circulación"
+msgstr "Registration permit"
+
+#: apps/documents/models.py:52
+msgid "Revisión técnica"
+msgstr "Technical inspection"
+
+#: apps/documents/models.py:53
+msgid "Tecnomecánica"
+msgstr "Roadworthiness inspection"
+
+#: apps/documents/models.py:55
+msgid "Gases"
+msgstr "Emissions"
+
+#: apps/documents/models.py:56
+msgid "Otro"
+msgstr "Other"
+
+#: apps/documents/models.py:65
+msgid "Reemplazado"
+msgstr "Replaced"
+
+#: apps/documents/models.py:95
+msgid "documento del vehículo"
+msgstr "vehicle document"
+
+#: apps/documents/models.py:96
+msgid "documentos del vehículo"
+msgstr "vehicle documents"
+
+#: apps/documents/models.py:169
+msgid "adjunto de documento"
+msgstr "document attachment"
+
+#: apps/documents/models.py:170
+msgid "adjuntos de documento"
+msgstr "document attachments"
+
+#: apps/documents/models.py:199
+msgid "Reemplazada"
+msgstr "Replaced"
+
+#: apps/documents/models.py:200
+msgid "Vencida"
+msgstr "Expired"
+
+#: apps/documents/models.py:229
+msgid "licencia de conducir"
+msgstr "driver license"
+
+#: apps/documents/models.py:230
+msgid "licencias de conducir"
+msgstr "driver licenses"
+
+#: apps/documents/models.py:307
+msgid "adjunto de licencia"
+msgstr "license attachment"
+
+#: apps/documents/models.py:308
+msgid "adjuntos de licencia"
+msgstr "license attachments"
+
+#: apps/expenses/apps.py:8 config/unfold.py:97
+msgid "Gastos"
+msgstr "Expenses"
+
+#: apps/expenses/models.py:20
+msgid "categoría de gasto"
+msgstr "expense category"
+
+#: apps/expenses/models.py:21
+msgid "categorías de gasto"
+msgstr "expense categories"
+
+#: apps/expenses/models.py:36
+msgid "Reportado"
+msgstr "Reported"
+
+#: apps/expenses/models.py:37
+msgid "Aprobado"
+msgstr "Approved"
+
+#: apps/expenses/models.py:38 apps/reports/models.py:22
+msgid "Rechazado"
+msgstr "Rejected"
+
+#: apps/expenses/models.py:45
+msgid "Pagado"
+msgstr "Paid"
+
+#: apps/expenses/models.py:69
+msgid "gasto de vehículo"
+msgstr "vehicle expense"
+
+#: apps/expenses/models.py:70
+msgid "gastos de vehículo"
+msgstr "vehicle expenses"
+
+#: apps/expenses/models.py:107
+msgid "adjunto de gasto"
+msgstr "expense attachment"
+
+#: apps/expenses/models.py:108
+msgid "adjuntos de gasto"
+msgstr "expense attachments"
+
+#: apps/health/apps.py:8
+msgid "Sitio público"
+msgstr "Public site"
+
+#: apps/health/forms.py:12
+msgid "Email corporativo"
+msgstr "Work email"
+
+#: apps/health/forms.py:14 apps/health/views.py:35 config/unfold.py:55
+msgid "Vehículos"
+msgstr "Vehicles"
+
+#: apps/health/forms.py:16
+msgid "Cuéntanos tu operación"
+msgstr "Tell us about your operation"
+
+#: apps/health/views.py:28
+msgid "Nueva cotización Fleet"
+msgstr "New Fleet quote"
+
+#: apps/health/views.py:30
+msgid "Nueva solicitud desde la landing de Fleet SaaS"
+msgstr "New request from the Fleet SaaS landing page"
+
+#: apps/health/views.py:36
+msgid "Contexto"
+msgstr "Context"
+
+#: apps/health/views.py:36
+msgid "Sin comentario adicional."
+msgstr "No additional comments."
+
+#: apps/health/views.py:45
+msgid "Recibimos tu solicitud. Te contactaremos a la brevedad."
+msgstr "We received your request. We will contact you shortly."
+
+#: apps/health/views.py:56
+msgid "Módulos operativos"
+msgstr "Operational modules"
+
+#: apps/health/views.py:57
+msgid "Visibilidad de flota"
+msgstr "Fleet visibility"
+
+#: apps/health/views.py:58
+msgid "Tiempo de puesta en marcha"
+msgstr "Go-live time"
+
+#: apps/maintenance/apps.py:8 config/unfold.py:87
+msgid "Mantenimientos"
+msgstr "Maintenance"
+
+#: apps/maintenance/models.py:16
+msgid "Preventivo"
+msgstr "Preventive"
+
+#: apps/maintenance/models.py:17
+msgid "Correctivo"
+msgstr "Corrective"
+
+#: apps/maintenance/models.py:24
+msgid "Abierto"
+msgstr "Open"
+
+#: apps/maintenance/models.py:25 apps/reports/models.py:21
+msgid "Completado"
+msgstr "Completed"
+
+#: apps/maintenance/models.py:26
+msgid "Cancelado"
+msgstr "Cancelled"
+
+#: apps/maintenance/models.py:49
+msgid "mantención"
+msgstr "maintenance record"
+
+#: apps/maintenance/models.py:50
+msgid "mantenciones"
+msgstr "maintenance records"
+
+#: apps/maintenance/models.py:72
+msgid "Manual"
+msgstr "Manual"
+
+#: apps/maintenance/models.py:73
+msgid "Gasto"
+msgstr "Expense"
+
+#: apps/maintenance/models.py:74 config/unfold.py:141
+msgid "Mantención"
+msgstr "Maintenance"
+
+#: apps/maintenance/models.py:92
+msgid "registro de odómetro"
+msgstr "odometer record"
+
+#: apps/maintenance/models.py:93
+msgid "registros de odómetro"
+msgstr "odometer records"
+
+#: apps/ops/apps.py:8
+msgid "Operaciones"
+msgstr "Operations"
+
+#: apps/product_analytics/apps.py:8
+msgid "Analítica de producto"
+msgstr "Product analytics"
+
+#: apps/reports/admin_views.py:15
+msgid "Centro de reportes"
+msgstr "Reports center"
+
+#: apps/reports/apps.py:8 config/unfold.py:158
+msgid "Reportes"
+msgstr "Reports"
+
+#: apps/reports/models.py:41
+msgid "exportación de reporte"
+msgstr "report export"
+
+#: apps/reports/models.py:42
+msgid "exportaciones de reportes"
+msgstr "report exports"
+
+#: apps/tags/apps.py:10 config/unfold.py:112
+msgid "TAG / Pórticos"
+msgstr "Tolls / Gantries"
+
+#: apps/vehicles/apps.py:8 config/unfold.py:52
+msgid "Flota"
+msgstr "Fleet"
+
+#: apps/vehicles/models.py:37
+msgid "Patente. Única por empresa."
+msgstr "License plate. Unique per company."
+
+#: apps/vehicles/models.py:54
+msgid "Piloto responsable (si aplica)."
+msgstr "Responsible driver (if applicable)."
+
+#: apps/vehicles/models.py:60
+msgid "vehículo"
+msgstr "vehicle"
+
+#: apps/vehicles/models.py:61
+msgid "vehículos"
+msgstr "vehicles"
+
+#: config/settings.py:23
+msgid "Español"
+msgstr "Spanish"
+
+#: config/settings.py:24
+msgid "English"
+msgstr "English"
+
+#: config/unfold.py:41
+msgid "Resumen"
+msgstr "Overview"
+
+#: config/unfold.py:45
+msgid "Dashboard"
+msgstr "Dashboard"
+
+#: config/unfold.py:60
+msgid "Odómetro"
+msgstr "Odometer"
+
+#: config/unfold.py:65
+msgid "Conductores"
+msgstr "Drivers"
+
+#: config/unfold.py:75
+msgid "Documentos vehículo"
+msgstr "Vehicle documents"
+
+#: config/unfold.py:80
+msgid "Licencias"
+msgstr "Licenses"
+
+#: config/unfold.py:90
+msgid "Plan mantenimiento"
+msgstr "Maintenance plan"
+
+#: config/unfold.py:100
+msgid "Gastos de flota"
+msgstr "Fleet expenses"
+
+#: config/unfold.py:105
+msgid "Categorías"
+msgstr "Categories"
+
+#: config/unfold.py:115
+msgid "Resumen TAG"
+msgstr "Toll summary"
+
+#: config/unfold.py:120
+msgid "Cobros TAG"
+msgstr "Toll charges"
+
+#: config/unfold.py:125
+msgid "Tránsitos"
+msgstr "Trips"
+
+#: config/unfold.py:135
+msgid "Centro de alertas"
+msgstr "Alerts center"
+
+#: config/unfold.py:146
+msgid "Mensajes"
+msgstr "Messages"
+
+#: config/unfold.py:151
+msgid "Cola mensajes"
+msgstr "Message queue"
+
+#: config/unfold.py:161
+msgid "Centro reportes"
+msgstr "Reports center"
+
+#: config/unfold.py:166
+msgid "Exportaciones"
+msgstr "Exports"
+
+#: config/unfold.py:171
+msgid "Actividad producto"
+msgstr "Product activity"
+
+#: config/unfold.py:178
+msgid "Administración / Configuración"
+msgstr "Administration / Settings"
+
+#: config/unfold.py:191
+msgid "Usuarios"
+msgstr "Users"
+
+#: config/unfold.py:196
+msgid "Sucursales"
+msgstr "Branches"
+
+#: config/unfold.py:201
+msgid "Roles"
+msgstr "Roles"
+
+#: templates/admin/_recent_activity_menu.html:8
+msgid "Abrir actividad reciente"
+msgstr "Open recent activity"
+
+#: templates/admin/_recent_activity_menu.html:25
+msgid "Actividad"
+msgstr "Activity"
+
+#: templates/admin/_recent_activity_menu.html:26
+msgid "Recientes de tu cuenta"
+msgstr "Recent account activity"
+
+#: templates/admin/_recent_activity_menu.html:28
+msgid "Ver centro"
+msgstr "Open center"
+
+#: templates/admin/_recent_activity_menu.html:48
+msgid "Todo en calma"
+msgstr "All quiet"
+
+#: templates/admin/_recent_activity_menu.html:49
+msgid "Aún no hay eventos recientes para esta cuenta."
+msgstr "There are no recent events for this account yet."
+
+#: templates/admin/base_site.html:3
+msgid "Django site admin"
+msgstr "Django site admin"
+
+#: templates/public/home_landing.html:8 templates/public/home_landing.html:15
+msgid "RutaCore Fleet SaaS"
+msgstr "RutaCore Fleet SaaS"
+
+#: templates/public/home_landing.html:16
+msgid "Controla tu flota, documentos, gastos y alertas en una sola operación."
+msgstr "Control your fleet, documents, expenses and alerts in one single operation."
+
+#: templates/public/home_landing.html:18
+msgid ""
+"Un backoffice pensado para empresas que necesitan visibilidad diaria, "
+"responsables por vehículo y seguimiento real del estado documental y "
+"operacional."
+msgstr ""
+"A backoffice built for companies that need daily visibility, ownership per "
+"vehicle and real follow-up of document and operational status."
+
+#: templates/public/home_landing.html:29
+msgid "Alertas operativas"
+msgstr "Operational alerts"
+
+#: templates/public/home_landing.html:29
+msgid "Vencimientos, mantenimientos y mensajería interna."
+msgstr "Expirations, maintenance and internal messaging."
+
+#: templates/public/home_landing.html:30
+msgid "Vista multiempresa"
+msgstr "Multi-company view"
+
+#: templates/public/home_landing.html:30
+msgid "Ideal para holdings, transportistas y operación por sucursales."
+msgstr "Ideal for holdings, carriers and branch-based operations."
+
+#: templates/public/home_landing.html:31
+msgid "Reportes exportables"
+msgstr "Exportable reports"
+
+#: templates/public/home_landing.html:31
+msgid "Resumen ejecutivo con PDF listo para comité o cliente."
+msgstr "Executive summary with PDF ready for committees or clients."
+
+#: templates/public/home_landing.html:43
+msgid "Panel operacional en tiempo real"
+msgstr "Real-time operations panel"
+
+#: templates/public/home_landing.html:57
+msgid "Docs críticos"
+msgstr "Critical docs"
+
+#: templates/public/home_landing.html:61
+msgid "Gasto mensual"
+msgstr "Monthly spend"
+
+#: templates/public/home_landing.html:65
+msgid "Vehículos activos"
+msgstr "Active vehicles"
+
+#: templates/public/home_landing.html:75
+msgid "Cotización"
+msgstr "Quote"
+
+#: templates/public/home_landing.html:76
+msgid "Conversemos tu operación."
+msgstr "Let's talk about your operation."
+
+#: templates/public/home_landing.html:78
+msgid ""
+"Déjanos tus datos y te mostramos una propuesta base según tu tamaño de "
+"flota, estructura multiempresa y necesidades de control."
+msgstr ""
+"Leave us your details and we will show you a baseline proposal based on your "
+"fleet size, multi-company structure and control needs."
+
+#: templates/public/home_landing.html:104
+msgid "Solicitar cotización"
+msgstr "Request a quote"
+
+#: templates/unfold/helpers/language_switch.html:6
+msgid "Idioma"
+msgstr "Language"

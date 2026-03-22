@@ -1,0 +1,31 @@
+{% load i18n %}
+
+{% get_current_language as LANGUAGE_CODE %}
+
+{% if show_languages %}
+    <div class="fleet-language-switcher" aria-label="{% trans 'Idioma' %}">
+        <form action="{% if languages_action %}{{ languages_action }}{% else %}{% url 'set_language' %}{% endif %}" method="post" class="fleet-language-form">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+            <input name="language" type="hidden" value="es">
+            <button
+                type="submit"
+                class="fleet-language-option {% if LANGUAGE_CODE == 'es' %}fleet-language-option-active{% endif %}"
+            >
+                ES
+            </button>
+        </form>
+
+        <form action="{% if languages_action %}{{ languages_action }}{% else %}{% url 'set_language' %}{% endif %}" method="post" class="fleet-language-form">
+            {% csrf_token %}
+            <input name="next" type="hidden" value="{{ request.get_full_path }}">
+            <input name="language" type="hidden" value="en">
+            <button
+                type="submit"
+                class="fleet-language-option {% if LANGUAGE_CODE == 'en' %}fleet-language-option-active{% endif %}"
+            >
+                EN
+            </button>
+        </form>
+    </div>
+{% endif %}

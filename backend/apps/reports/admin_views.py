@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django.views.generic import TemplateView
+from django.utils.translation import gettext_lazy as _
 from unfold.views import UnfoldModelAdminViewMixin
 
 from .services import build_report_filters, build_reports_admin_context
@@ -11,7 +12,7 @@ from .services import build_report_filters, build_reports_admin_context
 class ReportsOverviewAdminView(UnfoldModelAdminViewMixin, TemplateView):
     """Pantalla consolidada de reportes operativos dentro del admin."""
 
-    title = "Centro de reportes"
+    title = _("Centro de reportes")
     permission_required = ()
     template_name = "admin/reports/overview.html"
 

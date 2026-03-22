@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from django.views.generic import TemplateView
+from django.utils.translation import gettext_lazy as _
 from unfold.views import UnfoldModelAdminViewMixin
 
 from .message_center import build_message_center_context, build_message_center_filters
@@ -11,7 +12,7 @@ from .message_center import build_message_center_context, build_message_center_f
 class MessagesOverviewAdminView(UnfoldModelAdminViewMixin, TemplateView):
     """Centro de mensajes internos y emails disparados por el sistema."""
 
-    title = "Centro de mensajes"
+    title = _("Centro de mensajes")
     permission_required = ()
     template_name = "admin/alerts/messages_overview.html"
 

@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from apps.companies.models import Company
 
@@ -17,8 +18,8 @@ class ReportExportLog(models.Model):
     STATUS_COMPLETED = "completed"
     STATUS_REJECTED = "rejected"
     STATUS_CHOICES = [
-        (STATUS_COMPLETED, "Completed"),
-        (STATUS_REJECTED, "Rejected"),
+        (STATUS_COMPLETED, _("Completado")),
+        (STATUS_REJECTED, _("Rechazado")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="report_export_logs")
@@ -37,6 +38,8 @@ class ReportExportLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("exportación de reporte")
+        verbose_name_plural = _("exportaciones de reportes")
         indexes = [
             models.Index(fields=["company", "created_at"]),
             models.Index(fields=["company", "report_type", "created_at"]),

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.db.models import Count, Sum
 from django.db.models.functions import Coalesce
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from unfold.views import UnfoldModelAdminViewMixin
 
@@ -17,7 +18,7 @@ from .models import Company, CompanyLimit
 class MembershipsOverviewAdminView(UnfoldModelAdminViewMixin, TemplateView):
     """Vista consolidada de planes, límites y consumo actual por empresa."""
 
-    title = "Membresías"
+    title = _("Membresías")
     permission_required = ()
     template_name = "admin/companies/memberships_overview.html"
 

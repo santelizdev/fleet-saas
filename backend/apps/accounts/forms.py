@@ -1,16 +1,25 @@
 from django import forms
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
+from django.utils.translation import gettext_lazy as _
 
 from .models import User
 
 
 class UserAdminCreationForm(forms.ModelForm):
-    password1 = forms.CharField(label="Password", strip=False, widget=forms.PasswordInput)
-    password2 = forms.CharField(label="Password confirmation", strip=False, widget=forms.PasswordInput)
+    password1 = forms.CharField(label=_("Contraseña"), strip=False, widget=forms.PasswordInput)
+    password2 = forms.CharField(label=_("Confirmación de contraseña"), strip=False, widget=forms.PasswordInput)
 
     class Meta:
         model = User
         fields = ("email", "name", "phone", "company", "is_active", "is_staff")
+        labels = {
+            "email": _("Correo"),
+            "name": _("Nombre"),
+            "phone": _("Teléfono"),
+            "company": _("Empresa"),
+            "is_active": _("Activo"),
+            "is_staff": _("Acceso al admin"),
+        }
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")
@@ -29,13 +38,22 @@ class UserAdminCreationForm(forms.ModelForm):
 
 class UserAdminChangeForm(forms.ModelForm):
     password = ReadOnlyPasswordHashField(
-        label="Password",
-        help_text="Las contraseñas no se almacenan en texto plano. Usa el formulario de cambio para actualizarla.",
+        label=_("Contraseña"),
+        help_text=_("Las contraseñas no se almacenan en texto plano. Usa el formulario de cambio para actualizarla."),
     )
 
     class Meta:
         model = User
         fields = ("email", "password", "name", "phone", "company", "is_active", "is_staff", "is_superuser")
+        labels = {
+            "email": _("Correo"),
+            "name": _("Nombre"),
+            "phone": _("Teléfono"),
+            "company": _("Empresa"),
+            "is_active": _("Activo"),
+            "is_staff": _("Acceso al admin"),
+            "is_superuser": _("Superusuario"),
+        }
 
     def clean_password(self):
         return self.initial.get("password")

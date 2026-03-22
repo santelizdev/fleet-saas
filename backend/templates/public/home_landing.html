@@ -1,21 +1,21 @@
-{% load static %}
+{% load static i18n %}
+{% get_current_language as LANGUAGE_CODE %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="{{ LANGUAGE_CODE|default:'es' }}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RutaCore Fleet SaaS</title>
+  <title>{% trans "RutaCore Fleet SaaS" %}</title>
   <link rel="stylesheet" href="{% static 'public/css/landing.css' %}">
 </head>
 <body class="landing-body">
   <main class="landing-shell">
     <section class="landing-hero">
       <div class="landing-copy">
-        <span class="landing-eyebrow">RutaCore Fleet SaaS</span>
-        <h1>Controla tu flota, documentos, gastos y alertas en una sola operación.</h1>
+        <span class="landing-eyebrow">{% trans "RutaCore Fleet SaaS" %}</span>
+        <h1>{% trans "Controla tu flota, documentos, gastos y alertas en una sola operación." %}</h1>
         <p class="landing-lead">
-          Un backoffice pensado para empresas que necesitan visibilidad diaria, responsables por vehículo
-          y seguimiento real del estado documental y operacional.
+          {% blocktrans %}Un backoffice pensado para empresas que necesitan visibilidad diaria, responsables por vehículo y seguimiento real del estado documental y operacional.{% endblocktrans %}
         </p>
         <div class="landing-stat-grid">
           {% for item in marketing_stats %}
@@ -26,9 +26,9 @@
           {% endfor %}
         </div>
         <div class="landing-feature-list">
-          <div><strong>Alertas operativas</strong><span>Vencimientos, mantenimientos y mensajería interna.</span></div>
-          <div><strong>Vista multiempresa</strong><span>Ideal para holdings, transportistas y operación por sucursales.</span></div>
-          <div><strong>Reportes exportables</strong><span>Resumen ejecutivo con PDF listo para comité o cliente.</span></div>
+          <div><strong>{% trans "Alertas operativas" %}</strong><span>{% trans "Vencimientos, mantenimientos y mensajería interna." %}</span></div>
+          <div><strong>{% trans "Vista multiempresa" %}</strong><span>{% trans "Ideal para holdings, transportistas y operación por sucursales." %}</span></div>
+          <div><strong>{% trans "Reportes exportables" %}</strong><span>{% trans "Resumen ejecutivo con PDF listo para comité o cliente." %}</span></div>
         </div>
       </div>
 
@@ -40,7 +40,7 @@
           <div class="landing-dashboard-head">
             <div>
               <small>Monitoreo diario</small>
-              <strong>Panel operacional en tiempo real</strong>
+              <strong>{% trans "Panel operacional en tiempo real" %}</strong>
             </div>
             <em>Fleet Ops</em>
           </div>
@@ -54,15 +54,15 @@
           </div>
           <div class="landing-card-row">
             <article>
-              <span>Docs críticos</span>
+              <span>{% trans "Docs críticos" %}</span>
               <strong>14</strong>
             </article>
             <article>
-              <span>Gasto mensual</span>
+              <span>{% trans "Gasto mensual" %}</span>
               <strong>$8.4M</strong>
             </article>
             <article>
-              <span>Vehículos activos</span>
+              <span>{% trans "Vehículos activos" %}</span>
               <strong>37</strong>
             </article>
           </div>
@@ -72,11 +72,10 @@
 
     <section class="landing-quote">
       <div class="landing-quote-copy">
-        <span class="landing-eyebrow">Cotización</span>
-        <h2>Conversemos tu operación.</h2>
+        <span class="landing-eyebrow">{% trans "Cotización" %}</span>
+        <h2>{% trans "Conversemos tu operación." %}</h2>
         <p>
-          Déjanos tus datos y te mostramos una propuesta base según tu tamaño de flota,
-          estructura multiempresa y necesidades de control.
+          {% blocktrans %}Déjanos tus datos y te mostramos una propuesta base según tu tamaño de flota, estructura multiempresa y necesidades de control.{% endblocktrans %}
         </p>
       </div>
 
@@ -102,7 +101,7 @@
             </label>
             {% endfor %}
           </div>
-          <button type="submit">Solicitar cotización</button>
+          <button type="submit">{% trans "Solicitar cotización" %}</button>
         </form>
       </div>
     </section>

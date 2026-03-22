@@ -616,6 +616,57 @@ body {
   padding: 0.2rem;
 }
 
+.fleet-language-switcher {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--fleet-border);
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 0.2rem;
+  padding: 0.2rem;
+}
+
+.dark .fleet-language-switcher {
+  background: rgba(29, 46, 83, 0.3);
+  border-color: rgba(214, 216, 219, 0.18);
+}
+
+.fleet-language-form {
+  display: inline-flex;
+}
+
+.fleet-language-option {
+  align-items: center;
+  border-radius: 999px;
+  color: var(--fleet-muted);
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 800;
+  justify-content: center;
+  letter-spacing: 0.1em;
+  min-width: 40px;
+  padding: 0.45rem 0.7rem;
+  transition: all 0.16s ease;
+}
+
+.fleet-language-option:hover {
+  color: var(--fleet-navy);
+}
+
+.dark .fleet-language-option:hover {
+  color: #fff;
+}
+
+.fleet-language-option-active {
+  background: rgba(29, 46, 83, 0.1);
+  color: var(--fleet-navy);
+}
+
+.dark .fleet-language-option-active {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+
 .dark .fleet-theme-switcher {
   background: rgba(29, 46, 83, 0.3);
   border-color: rgba(214, 216, 219, 0.18);
@@ -628,9 +679,12 @@ body {
   display: inline-flex;
   font-size: 0.82rem;
   font-weight: 700;
-  gap: 0.35rem;
-  padding: 0.42rem 0.78rem;
+  gap: 0;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
   transition: all 0.16s ease;
+  width: 38px;
 }
 
 .fleet-theme-option:hover {
@@ -809,6 +863,10 @@ body {
   }
 
   .fleet-theme-switcher {
+    display: none;
+  }
+
+  .fleet-language-switcher {
     display: none;
   }
 

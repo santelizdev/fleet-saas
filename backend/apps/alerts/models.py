@@ -5,6 +5,7 @@ from datetime import timedelta
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.companies.models import Company
 from apps.documents.models import DriverLicense, VehicleDocument
@@ -13,18 +14,18 @@ from apps.vehicles.models import Vehicle
 
 
 class AlertState(models.TextChoices):
-    PENDING = "pending", "Pending"
-    SENT = "sent", "Sent"
-    ACKNOWLEDGED = "acknowledged", "Acknowledged"
-    RESOLVED = "resolved", "Resolved"
+    PENDING = "pending", _("Pendiente")
+    SENT = "sent", _("Enviada")
+    ACKNOWLEDGED = "acknowledged", _("Acusada")
+    RESOLVED = "resolved", _("Resuelta")
 
 
 class DocumentAlert(models.Model):
     KIND_EXPIRY = "expiry"
     KIND_EXPIRED = "expired"
     KIND_CHOICES = [
-        (KIND_EXPIRY, "Expiry"),
-        (KIND_EXPIRED, "Expired"),
+        (KIND_EXPIRY, _("Por vencer")),
+        (KIND_EXPIRED, _("Vencido")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="document_alerts")
@@ -50,6 +51,8 @@ class DocumentAlert(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("alerta documental")
+        verbose_name_plural = _("alertas documentales")
         indexes = [
             models.Index(fields=["company", "state", "scheduled_for"]),
             models.Index(fields=["company", "due_date"]),
@@ -77,10 +80,10 @@ class MaintenanceAlert(models.Model):
     KIND_OVERDUE_DATE = "overdue_date"
     KIND_OVERDUE_KM = "overdue_km"
     KIND_CHOICES = [
-        (KIND_BY_DATE, "By date"),
-        (KIND_BY_KM, "By km"),
-        (KIND_OVERDUE_DATE, "Overdue by date"),
-        (KIND_OVERDUE_KM, "Overdue by km"),
+        (KIND_BY_DATE, _("Por fecha")),
+        (KIND_BY_KM, _("Por kilometraje")),
+        (KIND_OVERDUE_DATE, _("Atrasada por fecha")),
+        (KIND_OVERDUE_KM, _("Atrasada por kilometraje")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="maintenance_alerts")
@@ -101,6 +104,8 @@ class MaintenanceAlert(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("alerta de mantención")
+        verbose_name_plural = _("alertas de mantención")
         indexes = [
             models.Index(fields=["company", "state"]),
         ]
@@ -133,17 +138,17 @@ class Notification(models.Model):
     CHANNEL_EMAIL = "email"
     CHANNEL_IN_APP = "in_app"
     CHANNEL_CHOICES = [
-        (CHANNEL_EMAIL, "Email"),
-        (CHANNEL_IN_APP, "In App"),
+        (CHANNEL_EMAIL, _("Correo")),
+        (CHANNEL_IN_APP, _("Interna")),
     ]
 
     STATUS_QUEUED = "queued"
     STATUS_SENT = "sent"
     STATUS_FAILED = "failed"
     STATUS_CHOICES = [
-        (STATUS_QUEUED, "Queued"),
-        (STATUS_SENT, "Sent"),
-        (STATUS_FAILED, "Failed"),
+        (STATUS_QUEUED, _("En cola")),
+        (STATUS_SENT, _("Enviada")),
+        (STATUS_FAILED, _("Fallida")),
     ]
 
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="notifications")
@@ -172,6 +177,8 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("notificación")
+        verbose_name_plural = _("notificaciones")
         indexes = [
             models.Index(fields=["company", "status", "available_at"]),
             models.Index(fields=["status", "attempts"]),
@@ -212,8 +219,8 @@ class JobRun(models.Model):
     STATUS_SUCCESS = "success"
     STATUS_FAILED = "failed"
     STATUS_CHOICES = [
-        (STATUS_SUCCESS, "Success"),
-        (STATUS_FAILED, "Failed"),
+        (STATUS_SUCCESS, _("Exitoso")),
+        (STATUS_FAILED, _("Fallido")),
     ]
 
     job_name = models.CharField(max_length=64)
@@ -224,6 +231,8 @@ class JobRun(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        verbose_name = _("ejecución de tarea")
+        verbose_name_plural = _("ejecuciones de tareas")
         indexes = [
             models.Index(fields=["job_name", "created_at"]),
             models.Index(fields=["status", "created_at"]),

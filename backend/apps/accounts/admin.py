@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as DjangoUserAdmin
+from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
 
@@ -39,16 +40,16 @@ class BaseFleetUserAdmin(CompanyScopedAdminMixin, ModelAdmin, DjangoUserAdmin):
     add_form = UserAdminCreationForm
     compressed_fields = True
     ordering = ("email",)
-    list_display = ("email", "name", "company", "active_badge", "is_staff", "created_at")
+    list_display = ("email_column", "name_column", "company_column", "active_badge", "staff_badge", "created_at_column")
     search_fields = ("email", "name", "phone")
     list_filter = ("company", "is_active", "is_staff")
     list_select_related = ("company",)
 
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Perfil", {"fields": (("name", "phone"), "company")}),
+        (_("Perfil"), {"fields": (("name", "phone"), "company")}),
         (
-            "Permisos de acceso",
+            _("Permisos de acceso"),
             {
                 "fields": (
                     ("is_active", "is_staff", "is_superuser"),
@@ -56,7 +57,7 @@ class BaseFleetUserAdmin(CompanyScopedAdminMixin, ModelAdmin, DjangoUserAdmin):
                 )
             },
         ),
-        ("Auditoría", {"fields": ("last_login", "created_at")}),
+        (_("Auditoría"), {"fields": ("last_login", "created_at")}),
     )
 
     add_fieldsets = (
@@ -81,7 +82,27 @@ class BaseFleetUserAdmin(CompanyScopedAdminMixin, ModelAdmin, DjangoUserAdmin):
 
     @display(description="Activo", label={True: "success", False: "danger"})
     def active_badge(self, obj):
-        return obj.is_active, "Activo" if obj.is_active else "Inactivo"
+        return obj.is_active, _("Activo") if obj.is_active else _("Inactivo")
+
+    @display(description=_("Correo"), ordering="email")
+    def email_column(self, obj):
+        return obj.email
+
+    @display(description=_("Nombre"), ordering="name")
+    def name_column(self, obj):
+        return obj.name
+
+    @display(description=_("Empresa"), ordering="company")
+    def company_column(self, obj):
+        return obj.company
+
+    @display(description=_("Acceso admin"), boolean=True, ordering="is_staff")
+    def staff_badge(self, obj):
+        return obj.is_staff
+
+    @display(description=_("Creado"), ordering="created_at")
+    def created_at_column(self, obj):
+        return obj.created_at
 
 @admin.register(User)
 class UserAdmin(BaseFleetUserAdmin):

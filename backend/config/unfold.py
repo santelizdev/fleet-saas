@@ -6,6 +6,7 @@ from typing import Any
 
 from django.urls import reverse_lazy
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.alerts.models import AlertState, DocumentAlert, MaintenanceAlert
 
@@ -37,172 +38,172 @@ def navigation(request) -> list[dict[str, Any]]:
 
     return [
         {
-            "title": "Resumen",
+            "title": _("Resumen"),
             "separator": True,
             "items": [
                 {
-                    "title": "Dashboard",
+                    "title": _("Dashboard"),
                     "icon": "dashboard",
                     "link": reverse_lazy("admin:index"),
                 },
             ],
         },
         {
-            "title": "Flota",
+            "title": _("Flota"),
             "items": [
                 {
-                    "title": "Vehículos",
+                    "title": _("Vehículos"),
                     "icon": "directions_car",
                     "link": reverse_lazy("admin:vehicles_vehicle_changelist"),
                 },
                 {
-                    "title": "Odómetro",
+                    "title": _("Odómetro"),
                     "icon": "speed",
                     "link": reverse_lazy("admin:maintenance_vehicleodometerlog_changelist"),
                 },
                 {
-                    "title": "Conductores",
+                    "title": _("Conductores"),
                     "icon": "badge",
                     "link": reverse_lazy("admin:accounts_driver_changelist"),
                 },
             ],
         },
         {
-            "title": "Documentos",
+            "title": _("Documentos"),
             "items": [
                 {
-                    "title": "Documentos vehículo",
+                    "title": _("Documentos vehículo"),
                     "icon": "description",
                     "link": reverse_lazy("admin:documents_vehicledocument_changelist"),
                 },
                 {
-                    "title": "Licencias",
+                    "title": _("Licencias"),
                     "icon": "article",
                     "link": reverse_lazy("admin:documents_driverlicense_changelist"),
                 },
             ],
         },
         {
-            "title": "Mantenimientos",
+            "title": _("Mantenimientos"),
             "items": [
                 {
-                    "title": "Plan mantenimiento",
+                    "title": _("Plan mantenimiento"),
                     "icon": "build",
                     "link": reverse_lazy("admin:maintenance_maintenancerecord_changelist"),
                 },
             ],
         },
         {
-            "title": "Gastos",
+            "title": _("Gastos"),
             "items": [
                 {
-                    "title": "Gastos de flota",
+                    "title": _("Gastos de flota"),
                     "icon": "payments",
                     "link": reverse_lazy("admin:expenses_vehicleexpense_changelist"),
                 },
                 {
-                    "title": "Categorías",
+                    "title": _("Categorías"),
                     "icon": "category",
                     "link": reverse_lazy("admin:expenses_expensecategory_changelist"),
                 },
             ],
         },
         {
-            "title": "TAG / Pórticos",
+            "title": _("TAG / Pórticos"),
             "items": [
                 {
-                    "title": "Resumen TAG",
+                    "title": _("Resumen TAG"),
                     "icon": "toll",
                     "link": reverse_lazy("admin:tags_tagcharge_analytics"),
                 },
                 {
-                    "title": "Cobros TAG",
+                    "title": _("Cobros TAG"),
                     "icon": "receipt_long",
                     "link": reverse_lazy("admin:tags_tagcharge_changelist"),
                 },
                 {
-                    "title": "Tránsitos",
+                    "title": _("Tránsitos"),
                     "icon": "route",
                     "link": reverse_lazy("admin:tags_tagtransit_changelist"),
                 },
             ],
         },
         {
-            "title": "Alertas",
+            "title": _("Alertas"),
             "items": [
                 {
-                    "title": "Centro de alertas",
+                    "title": _("Centro de alertas"),
                     "icon": "notifications_active",
                     "link": reverse_lazy("admin:alerts_documentalert_changelist"),
                     "badge": str(alert_count) if alert_count else None,
                 },
                 {
-                    "title": "Mantención",
+                    "title": _("Mantención"),
                     "icon": "warning",
                     "link": reverse_lazy("admin:alerts_maintenancealert_changelist"),
                 },
                 {
-                    "title": "Mensajes",
+                    "title": _("Mensajes"),
                     "icon": "mail",
                     "link": reverse_lazy("admin:alerts_notification_overview"),
                 },
                 {
-                    "title": "Cola mensajes",
+                    "title": _("Cola mensajes"),
                     "icon": "inbox",
                     "link": reverse_lazy("admin:alerts_notification_changelist"),
                 },
             ],
         },
         {
-            "title": "Reportes",
+            "title": _("Reportes"),
             "items": [
                 {
-                    "title": "Centro reportes",
+                    "title": _("Centro reportes"),
                     "icon": "analytics",
                     "link": reverse_lazy("admin:reports_reportexportlog_overview"),
                 },
                 {
-                    "title": "Exportaciones",
+                    "title": _("Exportaciones"),
                     "icon": "download",
                     "link": reverse_lazy("admin:reports_reportexportlog_changelist"),
                 },
                 {
-                    "title": "Actividad producto",
+                    "title": _("Actividad producto"),
                     "icon": "timeline",
                     "link": reverse_lazy("admin:product_analytics_productevent_changelist"),
                 },
             ],
         },
         {
-            "title": "Administración / Configuración",
+            "title": _("Administración / Configuración"),
             "items": [
                 {
-                    "title": "Membresías",
+                    "title": _("Membresías"),
                     "icon": "workspace_premium",
                     "link": reverse_lazy("admin:companies_companylimit_overview"),
                 },
                 {
-                    "title": "Empresas",
+                    "title": _("Empresas"),
                     "icon": "apartment",
                     "link": reverse_lazy("admin:companies_company_changelist"),
                 },
                 {
-                    "title": "Usuarios",
+                    "title": _("Usuarios"),
                     "icon": "group",
                     "link": reverse_lazy("admin:accounts_user_changelist"),
                 },
                 {
-                    "title": "Sucursales",
+                    "title": _("Sucursales"),
                     "icon": "account_tree",
                     "link": reverse_lazy("admin:companies_branch_changelist"),
                 },
                 {
-                    "title": "Roles",
+                    "title": _("Roles"),
                     "icon": "admin_panel_settings",
                     "link": reverse_lazy("admin:accounts_role_changelist"),
                 },
                 {
-                    "title": "Auditoría",
+                    "title": _("Auditoría"),
                     "icon": "history",
                     "link": reverse_lazy("admin:audit_auditlog_changelist"),
                 },

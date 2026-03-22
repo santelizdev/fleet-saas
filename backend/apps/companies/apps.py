@@ -2,7 +2,7 @@ from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
 
 
-class HealthConfig(AppConfig):
+class CompaniesConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "apps.health"
-    verbose_name = _("Sitio público")
+    name = "apps.companies"
+    verbose_name = _("Empresas")

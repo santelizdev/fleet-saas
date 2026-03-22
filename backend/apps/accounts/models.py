@@ -7,6 +7,7 @@ from django.contrib.auth.models import (
     PermissionsMixin,
     BaseUserManager,
 )
+from django.utils.translation import gettext_lazy as _
 
 from apps.companies.models import Company
 
@@ -76,7 +77,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(
         default=False,
-        help_text="Permite acceder al admin de Django.",
+        help_text=_("Permite acceder al admin de Django."),
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -86,6 +87,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ["name", "company"]
 
     class Meta:
+        verbose_name = _("usuario")
+        verbose_name_plural = _("usuarios")
         indexes = [
             models.Index(fields=["company", "email"]),
         ]
@@ -114,6 +117,8 @@ class Capability(models.Model):
     description = models.CharField(max_length=255, blank=True, default="")
 
     class Meta:
+        verbose_name = _("capacidad")
+        verbose_name_plural = _("capacidades")
         indexes = [
             models.Index(fields=["code"]),
         ]
@@ -145,6 +150,8 @@ class Role(models.Model):
     )
 
     class Meta:
+        verbose_name = _("rol")
+        verbose_name_plural = _("roles")
         constraints = [
             models.UniqueConstraint(
                 fields=["company", "name"],
@@ -168,6 +175,8 @@ class RoleCapability(models.Model):
     capability = models.ForeignKey(Capability, on_delete=models.CASCADE)
 
     class Meta:
+        verbose_name = _("capacidad del rol")
+        verbose_name_plural = _("capacidades del rol")
         constraints = [
             models.UniqueConstraint(
                 fields=["role", "capability"],
@@ -186,6 +195,8 @@ class UserRole(models.Model):
     role = models.ForeignKey(Role, on_delete=models.CASCADE, related_name="role_users")
 
     class Meta:
+        verbose_name = _("rol de usuario")
+        verbose_name_plural = _("roles de usuario")
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "role"],
@@ -225,5 +236,5 @@ class Driver(User):
 
     class Meta:
         proxy = True
-        verbose_name = "Conductor"
-        verbose_name_plural = "Conductores"
+        verbose_name = _("conductor")
+        verbose_name_plural = _("conductores")

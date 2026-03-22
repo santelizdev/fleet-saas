@@ -1,6 +1,7 @@
 import os
 import dj_database_url
 from pathlib import Path
+from django.utils.translation import gettext_lazy as _
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -16,6 +17,13 @@ REDIS_CACHE_URL = os.environ.get("REDIS_CACHE_URL") or os.environ.get("REDIS_URL
 ROOT_URLCONF = "config.urls"
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
+LANGUAGE_CODE = "es"
+USE_I18N = True
+LANGUAGES = [
+    ("es", _("Español")),
+    ("en", _("English")),
+]
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 INSTALLED_APPS = [
     "unfold",
@@ -63,6 +71,7 @@ TEMPLATES = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -196,6 +205,7 @@ UNFOLD = {
     },
     "SHOW_HISTORY": True,
     "SHOW_VIEW_ON_SITE": False,
+    "SHOW_LANGUAGES": True,
     "DASHBOARD_CALLBACK": "apps.ops.admin_dashboard.dashboard_callback",
     "ENVIRONMENT": "config.unfold.environment_callback",
     "SIDEBAR": {

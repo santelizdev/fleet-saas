@@ -8,6 +8,7 @@ from datetime import timedelta
 from django.db.models import Q
 from django.utils import timezone
 from django.utils.dateparse import parse_date
+from django.utils.translation import gettext_lazy as _
 
 from apps.alerts.models import JobRun, Notification
 from apps.alerts.services import build_notification_content
@@ -26,16 +27,16 @@ class MessageCenterFilters:
 
 
 MESSAGE_CHANNEL_CHOICES = [
-    ("all", "Todos"),
-    (Notification.CHANNEL_IN_APP, "Internos"),
-    (Notification.CHANNEL_EMAIL, "Email"),
+    ("all", _("Todos")),
+    (Notification.CHANNEL_IN_APP, _("Internos")),
+    (Notification.CHANNEL_EMAIL, _("Correo")),
 ]
 
 MESSAGE_STATUS_CHOICES = [
-    ("all", "Todos"),
-    (Notification.STATUS_QUEUED, "En cola"),
-    (Notification.STATUS_SENT, "Enviados"),
-    (Notification.STATUS_FAILED, "Fallidos"),
+    ("all", _("Todos")),
+    (Notification.STATUS_QUEUED, _("En cola")),
+    (Notification.STATUS_SENT, _("Enviados")),
+    (Notification.STATUS_FAILED, _("Fallidos")),
 ]
 
 
@@ -99,7 +100,7 @@ def _serialize_message_card(notification: Notification) -> dict:
         "channel_label": notification.get_channel_display(),
         "status": notification.status,
         "status_label": notification.get_status_display(),
-        "recipient": notification.recipient or "Sin destinatario",
+        "recipient": notification.recipient or _("Sin destinatario"),
         "subject": subject,
         "body": body,
         "context": payload.get("context", ""),
