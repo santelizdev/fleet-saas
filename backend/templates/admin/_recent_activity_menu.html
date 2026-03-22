@@ -1,0 +1,53 @@
+<div class="fleet-header-notifications" x-data="{ open: false }" @keydown.escape.window="open = false">
+  <button
+    type="button"
+    class="fleet-header-icon"
+    @click="open = !open"
+    :aria-expanded="open.toString()"
+    aria-label="Abrir actividad reciente"
+  >
+    <span class="material-symbols-outlined">notifications</span>
+    {% if admin_recent_activity_count %}
+    <span class="fleet-header-icon-badge">{{ admin_recent_activity_count }}</span>
+    {% endif %}
+  </button>
+
+  <div
+    class="fleet-header-panel"
+    x-show="open"
+    x-transition.opacity
+    @click.outside="open = false"
+    style="display: none;"
+  >
+    <div class="fleet-header-panel-head">
+      <div>
+        <span class="fleet-eyebrow">Actividad</span>
+        <strong>Recientes de tu cuenta</strong>
+      </div>
+      <a href="{{ admin_recent_activity_url }}">Ver centro</a>
+    </div>
+
+    <div class="fleet-header-feed">
+      {% if admin_recent_activity_items %}
+      {% for item in admin_recent_activity_items %}
+      <a class="fleet-header-feed-item" href="{{ item.url }}">
+        <span class="fleet-header-feed-mark" style="background: {{ item.accent }};"></span>
+        <span class="fleet-header-feed-body">
+          <strong>{{ item.title }}</strong>
+          <small>{{ item.subtitle }}</small>
+        </span>
+        <span class="fleet-header-feed-meta">
+          <em>{{ item.kind_label }}</em>
+          <small>{{ item.when|timesince }} atrás</small>
+        </span>
+      </a>
+      {% endfor %}
+      {% else %}
+      <div class="fleet-header-feed-empty">
+        <strong>Todo en calma</strong>
+        <small>Aún no hay eventos recientes para esta cuenta.</small>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>

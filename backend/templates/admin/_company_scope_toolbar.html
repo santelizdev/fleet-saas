@@ -1,0 +1,24 @@
+{% if company_scope_enabled %}
+<section class="fleet-card fleet-section" style="margin-bottom: 1rem;">
+  <form method="get" class="fleet-report-filters" style="align-items: end;">
+    {% for item in company_scope_preserved_filters %}
+    <input type="hidden" name="{{ item.key }}" value="{{ item.value }}">
+    {% endfor %}
+    <label>
+      <span>Empresa</span>
+      <select name="company_scope" onchange="this.form.requestSubmit ? this.form.requestSubmit() : this.form.submit()">
+        <option value="">Todas</option>
+        {% for company in company_scope_companies %}
+        <option value="{{ company.id }}" {% if company_scope_value == company.id %}selected{% endif %}>{{ company.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% if company_scope_value %}
+    <a class="fleet-link-chip" href="?">Limpiar filtro</a>
+    {% endif %}
+    <noscript>
+      <button type="submit">Aplicar</button>
+    </noscript>
+  </form>
+</section>
+{% endif %}

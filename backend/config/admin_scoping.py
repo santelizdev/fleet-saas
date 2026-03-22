@@ -4,6 +4,7 @@ from django.db import models
 from django.urls import path, reverse
 
 from apps.accounts.models import UserRole
+from apps.companies.models import Company
 
 
 class CompanyScopedAdminMixin:
@@ -14,6 +15,7 @@ class CompanyScopedAdminMixin:
 
     company_filter_lookup = "company_id"
     form_company_filters = {}
+    list_before_template = "admin/_company_scope_toolbar.html"
     formfield_overrides = {
         models.DateField: {"widget": forms.DateInput(attrs={"type": "date"})},
     }
@@ -35,11 +37,15 @@ class CompanyScopedAdminMixin:
         ).exists()
 
     def _selected_company_id(self, request):
+        scoped_company_id = getattr(request, "_company_scope_value", None)
+        if scoped_company_id is not None:
+            return scoped_company_id
+
         company_id = self._current_company_id(request)
         if company_id is not None:
             return company_id
 
-        for key in ("company", "company_id"):
+        for key in ("company_scope", "company", "company_id"):
             value = request.POST.get(key) or request.GET.get(key)
             if value:
                 try:
@@ -60,6 +66,41 @@ class CompanyScopedAdminMixin:
     def _company_options_url_name(self):
         opts = self.model._meta
         return f"admin:{opts.app_label}_{opts.model_name}_company_options"
+
+    def _available_companies(self, request):
+        if not request.user.is_superuser:
+            return Company.objects.filter(id=getattr(request.user, "company_id", None))
+        return Company.objects.all().order_by("name")
+
+    def _company_scope_value(self, request):
+        scoped_company_id = getattr(request, "_company_scope_value", None)
+        if scoped_company_id is not None:
+            return scoped_company_id
+
+        if not request.user.is_superuser:
+            return getattr(request.user, "company_id", None)
+        value = request.GET.get("company_scope") or request.POST.get("company_scope")
+        if not value:
+            return None
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return None
+
+    def _company_scope_context(self, request):
+        preserved_filters = []
+        for key, values in request.GET.lists():
+            if key in {"company_scope", "p"}:
+                continue
+            for value in values:
+                preserved_filters.append({"key": key, "value": value})
+
+        return {
+            "company_scope_enabled": request.user.is_superuser,
+            "company_scope_value": self._company_scope_value(request),
+            "company_scope_companies": list(self._available_companies(request)),
+            "company_scope_preserved_filters": preserved_filters,
+        }
 
     def _filter_related_queryset(self, db_field, request, queryset):
         if db_field.name in {"driver", "assigned_driver"}:
@@ -103,12 +144,36 @@ class CompanyScopedAdminMixin:
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
-        company_id = self._current_company_id(request)
+        company_id = self._selected_company_id(request)
         if company_id is not None:
             qs = qs.filter(**{self.company_filter_lookup: company_id})
         if self._is_pilot_user(request):
             qs = self._filter_queryset_for_pilot(request, qs)
         return qs
+
+    def lookup_allowed(self, lookup, value, request=None):
+        """
+        Permite usar company_scope como query param auxiliar del changelist.
+
+        Django Admin redirige a ?e=1 cuando encuentra parámetros GET que no
+        reconoce como filtros válidos. Sin este whitelist el selector de
+        empresa parece un error de base de datos aunque la DB esté sana.
+        """
+
+        if lookup == "company_scope":
+            return True
+        return super().lookup_allowed(lookup, value, request=request)
+
+    def changelist_view(self, request, extra_context=None):
+        if request.user.is_superuser and "company_scope" in request.GET:
+            request._company_scope_value = self._selected_company_id(request)
+            mutable_get = request.GET.copy()
+            mutable_get.pop("company_scope", None)
+            request.GET = mutable_get
+
+        extra_context = extra_context or {}
+        extra_context.update(self._company_scope_context(request))
+        return super().changelist_view(request, extra_context=extra_context)
 
     def get_urls(self):
         opts = self.model._meta

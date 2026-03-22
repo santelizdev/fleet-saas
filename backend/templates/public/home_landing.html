@@ -1,0 +1,111 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RutaCore Fleet SaaS</title>
+  <link rel="stylesheet" href="{% static 'public/css/landing.css' %}">
+</head>
+<body class="landing-body">
+  <main class="landing-shell">
+    <section class="landing-hero">
+      <div class="landing-copy">
+        <span class="landing-eyebrow">RutaCore Fleet SaaS</span>
+        <h1>Controla tu flota, documentos, gastos y alertas en una sola operación.</h1>
+        <p class="landing-lead">
+          Un backoffice pensado para empresas que necesitan visibilidad diaria, responsables por vehículo
+          y seguimiento real del estado documental y operacional.
+        </p>
+        <div class="landing-stat-grid">
+          {% for item in marketing_stats %}
+          <article class="landing-stat-card">
+            <strong>{{ item.value }}</strong>
+            <span>{{ item.label }}</span>
+          </article>
+          {% endfor %}
+        </div>
+        <div class="landing-feature-list">
+          <div><strong>Alertas operativas</strong><span>Vencimientos, mantenimientos y mensajería interna.</span></div>
+          <div><strong>Vista multiempresa</strong><span>Ideal para holdings, transportistas y operación por sucursales.</span></div>
+          <div><strong>Reportes exportables</strong><span>Resumen ejecutivo con PDF listo para comité o cliente.</span></div>
+        </div>
+      </div>
+
+      <div class="landing-visual">
+        <div class="landing-dashboard-card">
+          <div class="landing-browser-bar">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="landing-dashboard-head">
+            <div>
+              <small>Monitoreo diario</small>
+              <strong>Panel operacional en tiempo real</strong>
+            </div>
+            <em>Fleet Ops</em>
+          </div>
+          <div class="landing-chart">
+            <div style="height: 42%;"></div>
+            <div style="height: 58%;"></div>
+            <div style="height: 78%;"></div>
+            <div style="height: 64%;"></div>
+            <div style="height: 86%;"></div>
+            <div style="height: 52%;"></div>
+          </div>
+          <div class="landing-card-row">
+            <article>
+              <span>Docs críticos</span>
+              <strong>14</strong>
+            </article>
+            <article>
+              <span>Gasto mensual</span>
+              <strong>$8.4M</strong>
+            </article>
+            <article>
+              <span>Vehículos activos</span>
+              <strong>37</strong>
+            </article>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-quote">
+      <div class="landing-quote-copy">
+        <span class="landing-eyebrow">Cotización</span>
+        <h2>Conversemos tu operación.</h2>
+        <p>
+          Déjanos tus datos y te mostramos una propuesta base según tu tamaño de flota,
+          estructura multiempresa y necesidades de control.
+        </p>
+      </div>
+
+      <div class="landing-form-card">
+        {% if messages %}
+        <div class="landing-success">
+          {% for message in messages %}
+          <p>{{ message }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="post" class="landing-form">
+          {% csrf_token %}
+          <div class="landing-form-grid">
+            {% for field in quote_form %}
+            <label class="landing-field {% if field.name == 'message' %}landing-field-full{% endif %}">
+              <span>{{ field.label }}</span>
+              {{ field }}
+              {% if field.errors %}
+              <small>{{ field.errors|striptags }}</small>
+              {% endif %}
+            </label>
+            {% endfor %}
+          </div>
+          <button type="submit">Solicitar cotización</button>
+        </form>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

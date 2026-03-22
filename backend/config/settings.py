@@ -55,6 +55,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",  # Requerido por el admin
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "config.context_processors.admin_recent_activity",
             ],
         },
     },
