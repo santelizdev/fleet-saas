@@ -5,7 +5,7 @@ Subir esta versión al servidor, aplicar migraciones nuevas y dejar listo el ent
 
 - Admin modernizado
 - Centro de reportes
-- Alertas con notificaciones `in_app`, `email` y `push`
+- Alertas con mensajes internos (`in_app`) y notificaciones `email`
 
 ## Importante: el proyecto hoy soporta 2 modos de despliegue
 
@@ -41,7 +41,7 @@ git pull origin main
 2. Actualizar `.env` del servidor:
 
 - Puedes partir copiando `.env.example`
-- Ajusta dominio, secretos, SMTP y configuración push
+- Ajusta dominio, secretos y SMTP
 
 ```bash
 cp .env.example .env
@@ -92,12 +92,6 @@ Si tienes Nginx delante, sería:
 - `DJANGO_EMAIL_USE_TLS`
 - `DJANGO_EMAIL_USE_SSL`
 
-### Push
-
-- `NOTIFICATION_PUSH_BACKEND`
-- `NOTIFICATION_PUSH_WEBHOOK_URL`
-- `NOTIFICATION_PUSH_WEBHOOK_TOKEN`
-
 ### Alertas programadas
 
 - `ALERT_DEFAULT_MAINTENANCE_REMINDER_DAYS`
@@ -138,68 +132,6 @@ docker compose exec web python manage.py process_notifications --limit=100 --max
 - Verifica `channel=email`
 - Si hubo error, revisa `last_error`
 
-## Cómo probar push notifications
-
-La implementación actual deja el core listo, pero la entrega final depende de un backend push externo.
-
-### Modo 1: `console`
-Útil para validar el flujo funcional sin proveedor real.
-
-```env
-NOTIFICATION_PUSH_BACKEND=console
-```
-
-Con esto:
-
-- se generan notificaciones `push`
-- `process_notifications` las marca como enviadas
-- el contenido queda trazado en logs del contenedor `web`
-
-### Modo 2: `webhook`
-Útil cuando ya tienes un microservicio o endpoint que entrega push real vía:
-
-- FCM
-- OneSignal
-- Web Push
-- APNs gateway propio
-
-Configura:
-
-```env
-NOTIFICATION_PUSH_BACKEND=webhook
-NOTIFICATION_PUSH_WEBHOOK_URL=https://push.tu-dominio.com/notifications/send
-NOTIFICATION_PUSH_WEBHOOK_TOKEN=TOKEN_SEGURO
-```
-
-El sistema enviará un `POST` JSON con:
-
-- `title`
-- `body`
-- `recipient`
-- `notification_id`
-- `payload`
-- `devices`
-
-## Registro de dispositivos push
-
-Para que existan notificaciones `push`, debe haber dispositivos activos registrados en:
-
-- Admin > Alertas > Dispositivos push
-
-O vía API:
-
-- `POST /api/alerts/push-devices/`
-
-Campos base:
-
-- `user`
-- `label`
-- `provider`
-- `token`
-- `is_active`
-
-Sin dispositivos activos, el sistema no genera notificaciones push para ese usuario.
-
 ## Jobs que debes programar en servidor
 
 ### Generación diaria de alertas
@@ -210,10 +142,11 @@ Recomendado una vez por día:
 ```
 
 ### Procesamiento de cola de notificaciones
-Recomendado cada 5 minutos:
+Recomendado una primera corrida justo después de generar alertas y otra vespertina para reintentos:
 
 ```bash
-*/5 * * * * cd /opt/fleet && docker compose exec -T web python manage.py process_notifications --limit=100 --max-attempts=5
+5 8 * * * cd /opt/fleet && docker compose exec -T web python manage.py process_notifications --limit=200 --max-attempts=5
+5 15 * * * cd /opt/fleet && docker compose exec -T web python manage.py process_notifications --limit=200 --max-attempts=5
 ```
 
 `exec -T` evita problemas de TTY en cron.
@@ -223,9 +156,8 @@ Recomendado cada 5 minutos:
 1. `/health/` responde OK
 2. `/admin/` carga correctamente
 3. `python manage.py migrate` no deja pendientes
-4. Existe al menos un `PushDevice` activo para prueba
-5. `generate_daily_alerts` crea registros en `JobRun`
-6. `process_notifications` marca `email`/`push` como `sent` o deja error legible en `last_error`
+4. `generate_daily_alerts` crea registros en `JobRun`
+5. `process_notifications` marca `email`/`in_app` como `sent` o deja error legible en `last_error`
 
 ## Comandos útiles de diagnóstico
 
@@ -251,18 +183,14 @@ docker compose exec web python manage.py shell
 
 Primero prueba así:
 
-1. `NOTIFICATION_PUSH_BACKEND=console`
-2. SMTP real funcionando
-3. registrar 1 dispositivo push en admin
-4. correr `generate_daily_alerts`
-5. correr `process_notifications`
-6. revisar `Notification`, `JobRun` y logs
+1. SMTP real funcionando
+2. correr `generate_daily_alerts`
+3. correr `process_notifications`
+4. revisar `Notification`, `JobRun` y logs
 
 Con eso validas:
 
 - creación de alertas
 - envío por email
-- fanout push
+- fanout a mensajes internos
 - trazabilidad operativa
-
-Luego cambias `push` de `console` a `webhook`.

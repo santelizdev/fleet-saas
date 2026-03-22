@@ -6,9 +6,11 @@ from apps.companies.models import Company
 
 class ReportExportLog(models.Model):
     FORMAT_CSV = "csv"
+    FORMAT_PDF = "pdf"
     FORMAT_XLSX = "xlsx"
     FORMAT_CHOICES = [
         (FORMAT_CSV, "CSV"),
+        (FORMAT_PDF, "PDF"),
         (FORMAT_XLSX, "XLSX"),
     ]
 

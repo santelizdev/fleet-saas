@@ -1,0 +1,88 @@
+{% extends "admin/base_site.html" %}
+
+{# Centro operativo de mensajes internos y emails sobre la cola Notification. #}
+{% block content %}
+<div class="fleet-dashboard">
+  <div class="fleet-page-header">
+    <div>
+      <p class="fleet-eyebrow">Mensajes</p>
+      <h1>Centro de mensajes internos</h1>
+      <p>Consolida alertas internas y correos emitidos por el sistema en una sola vista operativa.</p>
+    </div>
+    <div class="fleet-header-meta">
+      <span class="fleet-badge fleet-badge-info">{{ message_filters.date_from }} a {{ message_filters.date_to }}</span>
+    </div>
+  </div>
+
+  <section class="fleet-card fleet-section">
+    <form method="get" class="fleet-report-filters">
+      <label><span>Desde</span><input type="date" name="date_from" value="{{ message_filters.date_from|date:'Y-m-d' }}"></label>
+      <label><span>Hasta</span><input type="date" name="date_to" value="{{ message_filters.date_to|date:'Y-m-d' }}"></label>
+      <label>
+        <span>Canal</span>
+        <select name="channel">
+          {% for value, label in message_channel_choices %}
+          <option value="{{ value }}" {% if message_filters.channel == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        <span>Estado</span>
+        <select name="status">
+          {% for value, label in message_status_choices %}
+          <option value="{{ value }}" {% if message_filters.status == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label><span>Buscar</span><input type="text" name="q" value="{{ message_filters.query }}" placeholder="destinatario, error, mensaje"></label>
+      <button type="submit">Aplicar filtros</button>
+    </form>
+  </section>
+
+  <div class="fleet-kpi-grid">
+    <article class="fleet-card"><span class="fleet-kpi-label">Mensajes totales</span><strong class="fleet-kpi-value">{{ message_kpis.total }}</strong></article>
+    <article class="fleet-card fleet-card-emphasis"><span class="fleet-kpi-label">Internos</span><strong class="fleet-kpi-value">{{ message_kpis.internal }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Emails</span><strong class="fleet-kpi-value">{{ message_kpis.emails }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">En cola</span><strong class="fleet-kpi-value">{{ message_kpis.queued }}</strong></article>
+    <article class="fleet-card"><span class="fleet-kpi-label">Enviados</span><strong class="fleet-kpi-value">{{ message_kpis.sent }}</strong></article>
+    <article class="fleet-card fleet-card-emphasis"><span class="fleet-kpi-label">Fallidos</span><strong class="fleet-kpi-value">{{ message_kpis.failed }}</strong></article>
+  </div>
+
+  <div class="fleet-grid fleet-grid-2">
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Mensajes internos recientes</h2><a href="{% url 'admin:alerts_notification_changelist' %}?channel__exact=in_app">Ver cola</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Asunto</th><th>Contexto</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>
+        {% for item in message_internal_recent %}<tr><td>{{ item.subject }}</td><td>{{ item.context|default:"-" }}</td><td>{{ item.status_label }}</td><td>{{ item.created_at }}</td></tr>{% empty %}<tr><td colspan="4">No hay mensajes internos en el filtro actual.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Emails recientes</h2><a href="{% url 'admin:alerts_notification_changelist' %}?channel__exact=email">Ver envíos</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Asunto</th><th>Destinatario</th><th>Estado</th><th>Enviado</th></tr></thead><tbody>
+        {% for item in message_email_recent %}<tr><td>{{ item.subject }}</td><td>{{ item.recipient }}</td><td>{{ item.status_label }}</td><td>{{ item.sent_at|default:item.created_at }}</td></tr>{% empty %}<tr><td colspan="4">No hay correos en el período filtrado.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+
+  <div class="fleet-grid fleet-grid-2">
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Fallidos recientes</h2><a href="{% url 'admin:alerts_notification_changelist' %}?status__exact=failed">Abrir errores</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Canal</th><th>Asunto</th><th>Error</th><th>Intentos</th></tr></thead><tbody>
+        {% for item in message_failed_recent %}<tr><td>{{ item.channel_label }}</td><td>{{ item.subject }}</td><td>{{ item.last_error|default:"-" }}</td><td>{{ item.attempts }}</td></tr>{% empty %}<tr><td colspan="4">No hay mensajes fallidos en el rango filtrado.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+    <section class="fleet-card fleet-section">
+      <div class="fleet-section-header"><h2>Jobs recientes</h2><a href="{% url 'admin:alerts_jobrun_changelist' %}">Ver jobs</a></div>
+      <table class="fleet-table fleet-table-compact"><thead><tr><th>Job</th><th>Estado</th><th>Inicio</th><th>Detalle</th></tr></thead><tbody>
+        {% for item in message_recent_jobs %}<tr><td>{{ item.job_name }}</td><td>{{ item.get_status_display }}</td><td>{{ item.started_at }}</td><td>{{ item.details }}</td></tr>{% empty %}<tr><td colspan="4">Aún no hay ejecuciones registradas.</td></tr>{% endfor %}
+      </tbody></table>
+    </section>
+  </div>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header"><h2>Timeline reciente</h2><a href="{% url 'admin:alerts_notification_changelist' %}">Ver todo</a></div>
+    <table class="fleet-table fleet-table-compact"><thead><tr><th>ID</th><th>Canal</th><th>Asunto</th><th>Destinatario</th><th>Estado</th><th>Creado</th></tr></thead><tbody>
+      {% for item in message_recent %}<tr><td>#{{ item.id }}</td><td>{{ item.channel_label }}</td><td>{{ item.subject }}</td><td>{{ item.recipient }}</td><td>{{ item.status_label }}</td><td>{{ item.created_at }}</td></tr>{% empty %}<tr><td colspan="6">No hay mensajes recientes para este filtro.</td></tr>{% endfor %}
+    </tbody></table>
+  </section>
+</div>
+{% endblock %}

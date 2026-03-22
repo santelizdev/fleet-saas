@@ -11,6 +11,7 @@
       <p>Vista consolidada de cumplimiento, mantenimiento, gastos, alertas y TAG sin salir del admin.</p>
     </div>
     <div class="fleet-header-meta">
+      <a class="fleet-link-chip" href="{% url 'report-overview-export-pdf' %}?date_from={{ report_filters.date_from }}&date_to={{ report_filters.date_to }}{% if report_filters.vehicle_id %}&vehicle_id={{ report_filters.vehicle_id }}{% endif %}&report_type={{ report_filters.report_type }}&status={{ report_filters.status_focus }}">Exportar resumen PDF</a>
       <a class="fleet-link-chip" href="{% url 'report-vehicle-costs-export' %}?date_from={{ report_filters.date_from }}&date_to={{ report_filters.date_to }}{% if report_filters.vehicle_id %}&vehicle_id={{ report_filters.vehicle_id }}{% endif %}">Exportar costo por vehículo</a>
       <span class="fleet-badge fleet-badge-info">{{ report_filters.date_from }} a {{ report_filters.date_to }}</span>
     </div>

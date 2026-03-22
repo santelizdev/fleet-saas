@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from apps.alerts.models import DocumentAlert, MaintenanceAlert, Notification, PushDevice
+from apps.alerts.models import DocumentAlert, MaintenanceAlert, Notification
 
 
 class DocumentAlertSerializer(serializers.ModelSerializer):
@@ -59,20 +59,3 @@ class NotificationSerializer(serializers.ModelSerializer):
             "created_at",
         ]
         read_only_fields = ["id", "company", "attempts", "last_error", "sent_at", "created_at"]
-
-
-class PushDeviceSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PushDevice
-        fields = [
-            "id",
-            "company",
-            "user",
-            "label",
-            "provider",
-            "token",
-            "is_active",
-            "last_seen_at",
-            "created_at",
-        ]
-        read_only_fields = ["id", "company", "last_seen_at", "created_at"]

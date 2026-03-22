@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from apps.accounts.models import Capability, Role, RoleCapability, User, UserRole
-from apps.alerts.models import AlertState, DocumentAlert, Notification, PushDevice
+from apps.alerts.models import AlertState, DocumentAlert, Notification
 from apps.companies.models import Company
 from apps.documents.models import VehicleDocument
 from apps.vehicles.models import Vehicle
@@ -101,29 +101,3 @@ class AlertsAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["status"], Notification.STATUS_QUEUED)
         self.assertEqual(response.data["last_error"], "")
-
-    def test_push_device_lifecycle_is_company_scoped(self):
-        self.client.force_authenticate(self.user_a)
-        create_url = reverse("push-device-list")
-        create_response = self.client.post(
-            create_url,
-            {
-                "user": self.user_a.id,
-                "label": "Browser",
-                "provider": PushDevice.PROVIDER_WEB,
-                "token": "push-token-a",
-                "is_active": True,
-            },
-            format="json",
-        )
-        self.assertEqual(create_response.status_code, status.HTTP_201_CREATED)
-        device_id = create_response.data["id"]
-
-        list_response = self.client.get(create_url)
-        self.assertEqual(list_response.status_code, status.HTTP_200_OK)
-        self.assertEqual([item["id"] for item in list_response.data], [device_id])
-
-        deactivate_url = reverse("push-device-deactivate", kwargs={"pk": device_id})
-        deactivate_response = self.client.post(deactivate_url)
-        self.assertEqual(deactivate_response.status_code, status.HTTP_200_OK)
-        self.assertFalse(deactivate_response.data["is_active"])

@@ -96,6 +96,22 @@ class ReportsAPITest(APITestCase):
             1,
         )
 
+    @override_settings(REPORT_MAX_EXPORT_ROWS=200, REPORT_MAX_EXPORTS_PER_DAY=5)
+    def test_export_operational_pdf_returns_pdf_and_logs_export(self):
+        url = reverse("report-overview-export-pdf")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response["Content-Type"], "application/pdf")
+        self.assertTrue(response.content.startswith(b"%PDF"))
+        self.assertEqual(
+            ReportExportLog.objects.filter(
+                report_type="operational_summary",
+                export_format=ReportExportLog.FORMAT_PDF,
+                status=ReportExportLog.STATUS_COMPLETED,
+            ).count(),
+            1,
+        )
+
     @override_settings(RATE_LIMIT_REPORTS_PER_MIN=2)
     def test_reports_rate_limit_by_company(self):
         url = reverse("report-dashboard")

@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
-from apps.accounts.models import User
 from apps.companies.models import Company
 from apps.documents.models import DriverLicense, VehicleDocument
 from apps.maintenance.models import MaintenanceRecord
@@ -133,11 +132,9 @@ class MaintenanceAlert(models.Model):
 class Notification(models.Model):
     CHANNEL_EMAIL = "email"
     CHANNEL_IN_APP = "in_app"
-    CHANNEL_PUSH = "push"
     CHANNEL_CHOICES = [
         (CHANNEL_EMAIL, "Email"),
         (CHANNEL_IN_APP, "In App"),
-        (CHANNEL_PUSH, "Push"),
     ]
 
     STATUS_QUEUED = "queued"
@@ -209,43 +206,6 @@ class Notification(models.Model):
         backoff_minutes = min(max_backoff_minutes, 2 ** self.attempts)
         self.available_at = timezone.now() + timedelta(minutes=backoff_minutes)
         self.save(update_fields=["status", "attempts", "last_error", "available_at"])
-
-
-class PushDevice(models.Model):
-    """Registro de dispositivos o clientes web habilitados para push por usuario."""
-
-    PROVIDER_WEB = "web"
-    PROVIDER_FCM = "fcm"
-    PROVIDER_CHOICES = [
-        (PROVIDER_WEB, "Web"),
-        (PROVIDER_FCM, "Firebase / FCM"),
-    ]
-
-    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="push_devices")
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="push_devices")
-    label = models.CharField(max_length=64, blank=True, default="")
-    provider = models.CharField(max_length=16, choices=PROVIDER_CHOICES, default=PROVIDER_WEB)
-    token = models.CharField(max_length=255)
-    is_active = models.BooleanField(default=True)
-    last_seen_at = models.DateTimeField(default=timezone.now)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        constraints = [
-            models.UniqueConstraint(fields=["company", "token"], name="uniq_push_device_company_token"),
-        ]
-        indexes = [
-            models.Index(fields=["company", "user", "is_active"]),
-            models.Index(fields=["company", "provider", "is_active"]),
-        ]
-
-    def clean(self):
-        if self.user_id and self.company_id and self.user.company_id != self.company_id:
-            raise ValidationError("PushDevice.user debe pertenecer a la misma company.")
-
-    def save(self, *args, **kwargs):
-        self.full_clean()
-        return super().save(*args, **kwargs)
 
 
 class JobRun(models.Model):

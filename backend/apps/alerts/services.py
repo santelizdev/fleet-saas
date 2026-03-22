@@ -1,20 +1,17 @@
-"""Servicios de alertas: generación programada, fanout y entrega por canal."""
+"""Servicios de alertas: generación programada y entrega por email/mensajes internos."""
 
 from __future__ import annotations
 
-import json
 import logging
 from dataclasses import dataclass
 from datetime import date, timedelta
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 
 from django.conf import settings
 from django.core.mail import send_mail
 from django.db import transaction
 from django.utils import timezone
 
-from apps.alerts.models import DocumentAlert, MaintenanceAlert, Notification, PushDevice
+from apps.alerts.models import DocumentAlert, MaintenanceAlert, Notification
 from apps.documents.models import DriverLicense, VehicleDocument
 from apps.maintenance.models import MaintenanceRecord
 from apps.product_analytics.events import track_event
@@ -61,7 +58,7 @@ def _assigned_user_for_maintenance(record: MaintenanceRecord):
 
 
 def _notification_payload(*, alert_kind: str, message: str, due_date=None, due_km=None, user_id=None) -> dict:
-    """Normaliza el payload que comparten push, email y futuras exportaciones."""
+    """Normaliza el payload que comparten mensajes internos, email y futuras exportaciones."""
     payload = {
         "alert_kind": alert_kind,
         "message": message,
@@ -135,7 +132,7 @@ def _create_notification(
 
 
 def queue_alert_notifications(*, document_alert: DocumentAlert | None = None, maintenance_alert: MaintenanceAlert | None = None) -> int:
-    """Fanout conservador: mantenemos `in_app` y añadimos email/push si hay destino útil."""
+    """Fanout conservador: mantenemos `in_app` y añadimos email si hay destinatario útil."""
     alert = document_alert or maintenance_alert
     if alert is None:
         return 0
@@ -193,17 +190,6 @@ def queue_alert_notifications(*, document_alert: DocumentAlert | None = None, ma
         payload=payload,
     ):
         created_count += 1
-
-    if user and PushDevice.objects.filter(company_id=alert.company_id, user_id=user.id, is_active=True).exists():
-        if _create_notification(
-            company_id=alert.company_id,
-            document_alert=document_alert,
-            maintenance_alert=maintenance_alert,
-            channel=Notification.CHANNEL_PUSH,
-            recipient=recipient or str(user.id),
-            payload=payload,
-        ):
-            created_count += 1
 
     return created_count
 
@@ -426,57 +412,6 @@ def generate_scheduled_alerts(*, today: date | None = None) -> AlertGenerationRe
     return result
 
 
-def send_push_notification(notification: Notification) -> None:
-    """Envía la notificación push usando backend configurable sin acoplar el core."""
-    user_id = notification.payload.get("user_id")
-    if not user_id:
-        raise ValueError("Push notification sin user_id en payload.")
-
-    devices = list(
-        PushDevice.objects.filter(company_id=notification.company_id, user_id=user_id, is_active=True).values("token", "provider", "label")
-    )
-    if not devices:
-        raise ValueError("No hay dispositivos push activos para el usuario objetivo.")
-
-    subject, body, payload = build_notification_content(notification)
-    backend = getattr(settings, "NOTIFICATION_PUSH_BACKEND", "console")
-    delivery_payload = {
-        "title": subject,
-        "body": body,
-        "recipient": notification.recipient,
-        "notification_id": notification.id,
-        "payload": payload,
-        "devices": devices,
-    }
-
-    if backend == "console":
-        logger.info("Push notification queued via console backend: %s", delivery_payload)
-        return
-
-    if backend != "webhook":
-        raise ValueError(f"Push backend no soportado: {backend}")
-
-    webhook_url = getattr(settings, "NOTIFICATION_PUSH_WEBHOOK_URL", "")
-    if not webhook_url:
-        raise ValueError("NOTIFICATION_PUSH_WEBHOOK_URL es obligatorio para backend webhook.")
-
-    request = Request(
-        webhook_url,
-        data=json.dumps(delivery_payload).encode("utf-8"),
-        headers={
-            "Content-Type": "application/json",
-            "Authorization": f"Bearer {getattr(settings, 'NOTIFICATION_PUSH_WEBHOOK_TOKEN', '')}",
-        },
-        method="POST",
-    )
-    try:
-        with urlopen(request, timeout=10) as response:
-            if response.status >= 400:
-                raise ValueError(f"Push webhook respondió con estado {response.status}.")
-    except (HTTPError, URLError) as exc:
-        raise ValueError(f"Error enviando push: {exc}") from exc
-
-
 def send_notification(notification: Notification) -> None:
     """Despacha por canal y reutiliza el contenido ya centralizado."""
     if notification.channel == Notification.CHANNEL_IN_APP:
@@ -493,10 +428,6 @@ def send_notification(notification: Notification) -> None:
             recipient_list=[notification.recipient],
             fail_silently=False,
         )
-        return
-
-    if notification.channel == Notification.CHANNEL_PUSH:
-        send_push_notification(notification)
         return
 
     raise ValueError(f"Canal de notificación no soportado: {notification.channel}")

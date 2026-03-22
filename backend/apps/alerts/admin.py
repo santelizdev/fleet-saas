@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 from django.contrib import admin
+from django.urls import path, reverse
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
 
 from config.admin_scoping import CompanyScopedAdminMixin
 
-from .models import DocumentAlert, JobRun, MaintenanceAlert, Notification, PushDevice
+from .admin_views import MessagesOverviewAdminView
+from .models import DocumentAlert, JobRun, MaintenanceAlert, Notification
 
 
 @admin.register(DocumentAlert)
@@ -57,9 +59,9 @@ class MaintenanceAlertAdmin(CompanyScopedAdminMixin, ModelAdmin):
 
 @admin.register(Notification)
 class NotificationAdmin(CompanyScopedAdminMixin, ModelAdmin):
-    list_display = ("channel", "status_badge", "recipient", "attempts", "available_at", "sent_at")
+    list_display = ("channel_badge", "status_badge", "related_alert", "recipient", "attempts", "available_at", "sent_at")
     list_filter = ("company", "channel", "status")
-    search_fields = ("recipient", "last_error")
+    search_fields = ("recipient", "last_error", "document_alert__message", "maintenance_alert__message")
     list_select_related = ("company", "document_alert", "maintenance_alert")
     ordering = ("-created_at",)
     readonly_fields = ("payload_preview",)
@@ -79,32 +81,36 @@ class NotificationAdmin(CompanyScopedAdminMixin, ModelAdmin):
         "maintenance_alert": "company_id",
     }
 
+    def get_urls(self):
+        custom_view = self.admin_site.admin_view(MessagesOverviewAdminView.as_view(model_admin=self))
+        return [
+            path("overview/", custom_view, name="alerts_notification_overview"),
+        ] + super().get_urls()
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context["messages_overview_url"] = reverse("admin:alerts_notification_overview")
+        return super().changelist_view(request, extra_context=extra_context)
+
     @display(description="Estado", label={"queued": "warning", "sent": "success", "failed": "danger"})
     def status_badge(self, obj):
         return obj.status, obj.get_status_display()
 
+    @display(description="Canal", label={"in_app": "info", "email": "success"})
+    def channel_badge(self, obj):
+        return obj.channel, obj.get_channel_display()
+
+    @display(description="Origen")
+    def related_alert(self, obj):
+        if obj.document_alert_id:
+            return f"Documento #{obj.document_alert_id}"
+        if obj.maintenance_alert_id:
+            return f"Mantención #{obj.maintenance_alert_id}"
+        return "Sin origen"
+
     @display(description="Payload")
     def payload_preview(self, obj):
         return obj.payload or {}
-
-
-@admin.register(PushDevice)
-class PushDeviceAdmin(CompanyScopedAdminMixin, ModelAdmin):
-    """Permite registrar tokens push por usuario sin acoplar el admin a un proveedor."""
-
-    list_display = ("user", "provider", "label", "active_badge", "last_seen_at", "created_at")
-    list_filter = ("company", "provider", "is_active")
-    search_fields = ("user__email", "user__name", "label", "token")
-    list_select_related = ("company", "user")
-    readonly_fields = ("last_seen_at", "created_at")
-    form_company_filters = {
-        "company": "id",
-        "user": "company_id",
-    }
-
-    @display(description="Estado", label={True: "success", False: "danger"})
-    def active_badge(self, obj):
-        return obj.is_active, "Activo" if obj.is_active else "Inactivo"
 
 
 @admin.register(JobRun)

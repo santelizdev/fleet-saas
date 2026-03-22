@@ -45,3 +45,4 @@ class ReportsAdminViewTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Centro de reportes operativos")
         self.assertContains(response, "Exportar costo por vehículo")
+        self.assertContains(response, "Exportar resumen PDF")
