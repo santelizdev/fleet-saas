@@ -10,8 +10,20 @@ from django.contrib.auth.models import (
 
 from apps.companies.models import Company
 
+DRIVER_ROLE_REGEX = r"^(driver|piloto)$"
 
-class UserManager(BaseUserManager):
+
+class UserQuerySet(models.QuerySet):
+    """QuerySet base con atajos semánticos para distinguir conductores."""
+
+    def drivers(self):
+        return self.filter(user_roles__role__name__iregex=DRIVER_ROLE_REGEX).distinct()
+
+    def non_drivers(self):
+        return self.exclude(user_roles__role__name__iregex=DRIVER_ROLE_REGEX).distinct()
+
+
+class UserManager(BaseUserManager.from_queryset(UserQuerySet)):
     """
     Manager para nuestro usuario custom.
     Usamos email como username (lo más normal en SaaS).
@@ -82,6 +94,9 @@ class User(AbstractBaseUser, PermissionsMixin):
         if self.name:
             return self.name
         return self.email
+
+    def has_driver_role(self) -> bool:
+        return self.user_roles.filter(role__name__iregex=DRIVER_ROLE_REGEX).exists()
 
 
 class Capability(models.Model):
@@ -189,3 +204,26 @@ class UserRole(models.Model):
     def save(self, *args, **kwargs):
         self.full_clean()
         return super().save(*args, **kwargs)
+
+
+class DriverManager(UserManager):
+    """Manager del proxy Driver para separar operación de conductores."""
+
+    def get_queryset(self):
+        return super().get_queryset().drivers()
+
+
+class Driver(User):
+    """
+    Proxy operativo de usuario conductor.
+
+    No crea tabla nueva: reutiliza accounts_user pero permite URL/admin propio,
+    permisos diferenciados y semántica clara en backoffice.
+    """
+
+    objects = DriverManager()
+
+    class Meta:
+        proxy = True
+        verbose_name = "Conductor"
+        verbose_name_plural = "Conductores"

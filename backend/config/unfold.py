@@ -63,7 +63,7 @@ def navigation(request) -> list[dict[str, Any]]:
                 {
                     "title": "Conductores",
                     "icon": "badge",
-                    "link": reverse_lazy("admin:accounts_user_changelist"),
+                    "link": reverse_lazy("admin:accounts_driver_changelist"),
                 },
             ],
         },
@@ -177,9 +177,19 @@ def navigation(request) -> list[dict[str, Any]]:
             "title": "Administración / Configuración",
             "items": [
                 {
+                    "title": "Membresías",
+                    "icon": "workspace_premium",
+                    "link": reverse_lazy("admin:companies_companylimit_overview"),
+                },
+                {
                     "title": "Empresas",
                     "icon": "apartment",
                     "link": reverse_lazy("admin:companies_company_changelist"),
+                },
+                {
+                    "title": "Usuarios",
+                    "icon": "group",
+                    "link": reverse_lazy("admin:accounts_user_changelist"),
                 },
                 {
                     "title": "Sucursales",

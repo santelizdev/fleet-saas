@@ -1,0 +1,53 @@
+{% extends "admin/base_site.html" %}
+{% load humanize %}
+
+{% block content %}
+<div class="fleet-dashboard">
+  <div class="fleet-page-header">
+    <div>
+      <p class="fleet-eyebrow">Configuración</p>
+      <h1>Membresías y límites</h1>
+      <p>Vista consolidada de planes activos, cupos por empresa y consumo operativo actual.</p>
+    </div>
+    <div class="fleet-header-meta">
+      <span class="fleet-badge fleet-badge-info">{{ membership_company_total }} empresa{{ membership_company_total|pluralize }}</span>
+    </div>
+  </div>
+
+  <section class="fleet-card fleet-section">
+    <div class="fleet-section-header"><h2>Resumen multiempresa</h2><a href="{% url 'admin:companies_companylimit_changelist' %}">Editar límites</a></div>
+    <table class="fleet-table fleet-table-compact">
+      <thead>
+        <tr>
+          <th>Empresa</th>
+          <th>Plan</th>
+          <th>Estado</th>
+          <th>Vehículos</th>
+          <th>Usuarios</th>
+          <th>Storage usado</th>
+          <th>Límite vehículos</th>
+          <th>Límite usuarios</th>
+          <th>Límite storage</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in membership_rows %}
+        <tr>
+          <td>{{ row.company.name }}</td>
+          <td>{{ row.company.plan }}</td>
+          <td>{{ row.company.get_status_display }}</td>
+          <td>{{ row.vehicle_count }}</td>
+          <td>{{ row.user_count }}</td>
+          <td>{{ row.storage_mb_used|floatformat:2 }} MB</td>
+          <td>{{ row.limits.max_vehicles }}</td>
+          <td>{{ row.limits.max_users }}</td>
+          <td>{{ row.limits.max_storage_mb }} MB</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9">Aún no hay empresas configuradas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+</div>
+{% endblock %}

@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 
-from apps.accounts.models import User
+from apps.accounts.models import Role, User, UserRole
 from apps.companies.models import Company
 from apps.documents.models import (
     Attachment,
@@ -25,6 +25,8 @@ class DocumentsFlowsTest(TestCase):
             company=self.company,
             is_staff=True,
         )
+        self.driver_role = Role.objects.create(company=self.company, name="Driver")
+        UserRole.objects.create(user=self.user, role=self.driver_role)
         self.vehicle = Vehicle.objects.create(company=self.company, plate="DD33DD")
 
     def test_vehicle_document_validates_dates(self):
@@ -105,6 +107,23 @@ class DocumentsFlowsTest(TestCase):
             attachment=same_attachment,
         )
         self.assertIsNotNone(ok_link.id)
+
+    def test_driver_license_rejects_user_without_driver_role(self):
+        office_user = User.objects.create_user(
+            email="office-user@local.dev",
+            password="Secret123!",
+            name="Office User",
+            company=self.company,
+        )
+
+        with self.assertRaisesMessage(ValidationError, "rol de conductor"):
+            DriverLicense.objects.create(
+                company=self.company,
+                driver=office_user,
+                license_number="L-500",
+                issue_date=date.today(),
+                expiry_date=date.today() + timedelta(days=365),
+            )
 
     def test_vehicle_document_attachment_flow(self):
         doc = VehicleDocument.objects.create(

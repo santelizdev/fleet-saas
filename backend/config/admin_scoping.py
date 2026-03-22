@@ -104,7 +104,7 @@ class CompanyScopedAdminMixin:
 
     def _filter_related_queryset(self, db_field, request, queryset):
         if db_field.name in {"driver", "assigned_driver"}:
-            queryset = queryset.filter(is_superuser=False, is_active=True).distinct()
+            queryset = queryset.drivers().filter(is_superuser=False, is_active=True).distinct()
 
         if not self._is_pilot_user(request):
             return queryset

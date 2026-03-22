@@ -70,6 +70,8 @@ class Vehicle(models.Model):
     def clean(self):
         if self.assigned_driver_id and self.company_id and self.assigned_driver.company_id != self.company_id:
             raise ValidationError("assigned_driver debe pertenecer a la misma company.")
+        if self.assigned_driver_id and not self.assigned_driver.has_driver_role():
+            raise ValidationError("assigned_driver debe tener rol de conductor.")
 
     def save(self, *args, **kwargs):
         self.full_clean()

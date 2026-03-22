@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from django.contrib import admin
+from django.urls import path, reverse
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
 
 from config.admin_scoping import CompanyScopedAdminMixin
 
+from .admin_views import MembershipsOverviewAdminView
 from .models import Branch, Company, CompanyLimit
 
 
@@ -41,7 +43,7 @@ class BranchAdmin(CompanyScopedAdminMixin, ModelAdmin):
 
 
 @admin.register(CompanyLimit)
-class CompanyLimitAdmin(ModelAdmin):
+class CompanyLimitAdmin(CompanyScopedAdminMixin, ModelAdmin):
     list_display = (
         "company",
         "max_vehicles",
@@ -52,3 +54,18 @@ class CompanyLimitAdmin(ModelAdmin):
     )
     search_fields = ("company__name", "company__rut")
     list_select_related = ("company",)
+    list_filter = ("company",)
+    form_company_filters = {
+        "company": "id",
+    }
+
+    def get_urls(self):
+        custom_view = self.admin_site.admin_view(MembershipsOverviewAdminView.as_view(model_admin=self))
+        return [
+            path("overview/", custom_view, name="companies_companylimit_overview"),
+        ] + super().get_urls()
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context["memberships_overview_url"] = reverse("admin:companies_companylimit_overview")
+        return super().changelist_view(request, extra_context=extra_context)

@@ -10,15 +10,34 @@ from unfold.decorators import display
 from config.admin_scoping import CompanyScopedAdminMixin
 
 from .forms import UserAdminChangeForm, UserAdminCreationForm
-from .models import Capability, Role, RoleCapability, User, UserRole
+from .models import Capability, Driver, Role, RoleCapability, User, UserRole
 
 
-@admin.register(User)
-class UserAdmin(CompanyScopedAdminMixin, DjangoUserAdmin):
-    """Admin del usuario custom con jerarquía visual más operativa."""
+def _ensure_driver_role(user: User):
+    """
+    Garantiza que un conductor creado desde su módulo quede clasificado como tal.
+
+    Reutiliza rol Driver/Piloto si existe; si no, crea Driver con capabilities
+    mínimas para mantener el flujo operativo del MVP.
+    """
+
+    driver_role = Role.objects.filter(company=user.company, name__iregex=r"^(driver|piloto)$").order_by("name").first()
+    if driver_role is None:
+        driver_role = Role.objects.create(company=user.company, name="Driver", description="Rol operativo de conductor")
+        for code in ("vehicle.read", "doc.read", "expense.report"):
+            capability = Capability.objects.filter(code=code).first()
+            if capability:
+                RoleCapability.objects.get_or_create(role=driver_role, capability=capability)
+
+    UserRole.objects.get_or_create(user=user, role=driver_role)
+
+
+class BaseFleetUserAdmin(CompanyScopedAdminMixin, ModelAdmin, DjangoUserAdmin):
+    """Base visual/operativa compartida entre usuarios internos y conductores."""
 
     form = UserAdminChangeForm
     add_form = UserAdminCreationForm
+    compressed_fields = True
     ordering = ("email",)
     list_display = ("email", "name", "company", "active_badge", "is_staff", "created_at")
     search_fields = ("email", "name", "phone")
@@ -28,7 +47,15 @@ class UserAdmin(CompanyScopedAdminMixin, DjangoUserAdmin):
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Perfil", {"fields": (("name", "phone"), "company")}),
-        ("Permisos de acceso", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (
+            "Permisos de acceso",
+            {
+                "fields": (
+                    ("is_active", "is_staff", "is_superuser"),
+                    ("groups", "user_permissions"),
+                )
+            },
+        ),
         ("Auditoría", {"fields": ("last_login", "created_at")}),
     )
 
@@ -37,7 +64,12 @@ class UserAdmin(CompanyScopedAdminMixin, DjangoUserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "name", "phone", "company", "is_active", "is_staff", "password1", "password2"),
+                "fields": (
+                    "email",
+                    ("name", "phone"),
+                    ("company", "is_active", "is_staff"),
+                    ("password1", "password2"),
+                ),
             },
         ),
     )
@@ -50,6 +82,25 @@ class UserAdmin(CompanyScopedAdminMixin, DjangoUserAdmin):
     @display(description="Activo", label={True: "success", False: "danger"})
     def active_badge(self, obj):
         return obj.is_active, "Activo" if obj.is_active else "Inactivo"
+
+@admin.register(User)
+class UserAdmin(BaseFleetUserAdmin):
+    """Admin de usuarios internos del sistema, excluyendo conductores operativos."""
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).non_drivers()
+
+
+@admin.register(Driver)
+class DriverAdmin(BaseFleetUserAdmin):
+    """Admin operativo separado para conductores/pilotos."""
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).drivers()
+
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        _ensure_driver_role(obj)
 
 
 @admin.register(Capability)

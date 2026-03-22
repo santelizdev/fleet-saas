@@ -235,6 +235,8 @@ class DriverLicense(models.Model):
             raise ValidationError("expiry_date debe ser mayor que issue_date.")
         if self.driver_id and self.company_id and self.driver.company_id != self.company_id:
             raise ValidationError("Driver y DriverLicense deben pertenecer a la misma company.")
+        if self.driver_id and not self.driver.has_driver_role():
+            raise ValidationError("driver debe tener rol de conductor.")
         if self.created_by_id and self.company_id and self.created_by.company_id != self.company_id:
             raise ValidationError("created_by debe pertenecer a la misma company.")
 

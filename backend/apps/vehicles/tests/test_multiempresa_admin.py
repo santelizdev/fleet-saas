@@ -4,7 +4,9 @@ from django.urls import reverse
 from django.contrib.admin.sites import AdminSite
 from django.test import RequestFactory, TestCase
 
-from apps.accounts.models import User
+from django.core.exceptions import ValidationError
+
+from apps.accounts.models import Role, User, UserRole
 from apps.companies.models import Company
 from apps.vehicles.admin import VehicleAdmin
 from apps.vehicles.models import Vehicle
@@ -53,6 +55,8 @@ class MultiempresaAdminIsolationTest(TestCase):
         self.assertEqual(company_ids, [self.company_a.id])
 
     def test_assigned_driver_options_are_filtered_by_selected_company(self):
+        role = Role.objects.create(company=self.company_a, name="Driver")
+        UserRole.objects.create(user=self.staff_a, role=role)
         self.client.force_login(self.superuser)
         response = self.client.get(
             reverse("admin:vehicles_vehicle_company_options"),
@@ -63,3 +67,15 @@ class MultiempresaAdminIsolationTest(TestCase):
         options = response.json()["options"]
         labels = [option["label"] for option in options]
         self.assertEqual(labels, ["Staff A"])
+
+    def test_vehicle_rejects_assigned_user_without_driver_role(self):
+        office_user = User.objects.create_user(
+            email="office-a@local.dev",
+            password="Secret123!",
+            name="Office A",
+            company=self.company_a,
+            is_staff=True,
+        )
+        vehicle = Vehicle(company=self.company_a, plate="CC33CC", assigned_driver=office_user)
+        with self.assertRaisesMessage(ValidationError, "rol de conductor"):
+            vehicle.full_clean()
