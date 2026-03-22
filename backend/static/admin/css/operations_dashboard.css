@@ -71,6 +71,10 @@ body {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
 
+.fleet-kpi-grid-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .fleet-mini-grid {
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 }
@@ -851,6 +855,10 @@ body {
 
   .fleet-kpi-grid-compact {
     grid-template-columns: 1fr;
+  }
+
+  .fleet-kpi-grid-three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .fleet-welcome-art {

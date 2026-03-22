@@ -24,6 +24,7 @@ class Vehicle(models.Model):
         Company,
         on_delete=models.CASCADE,
         related_name="vehicles",
+        verbose_name=_("Empresa"),
     )
     branch = models.ForeignKey(
         Branch,
@@ -31,19 +32,21 @@ class Vehicle(models.Model):
         null=True,
         blank=True,
         related_name="vehicles",
+        verbose_name=_("Sucursal"),
     )
     plate = models.CharField(
         max_length=16,
+        verbose_name=_("Patente"),
         help_text=_("Patente. Única por empresa."),
     )
-    brand = models.CharField(max_length=64, blank=True, default="")
-    model = models.CharField(max_length=64, blank=True, default="")
-    year = models.PositiveIntegerField(null=True, blank=True)
-    vin = models.CharField(max_length=64, blank=True, default="")
-    engine_number = models.CharField(max_length=64, blank=True, default="")
-    current_km = models.PositiveIntegerField(default=0)
+    brand = models.CharField(max_length=64, blank=True, default="", verbose_name=_("Marca"))
+    model = models.CharField(max_length=64, blank=True, default="", verbose_name=_("Modelo"))
+    year = models.PositiveIntegerField(null=True, blank=True, verbose_name=_("Año"))
+    vin = models.CharField(max_length=64, blank=True, default="", verbose_name=_("VIN"))
+    engine_number = models.CharField(max_length=64, blank=True, default="", verbose_name=_("Número de motor"))
+    current_km = models.PositiveIntegerField(default=0, verbose_name=_("Kilometraje actual"))
 
-    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
+    status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_ACTIVE, verbose_name=_("Estado"))
 
     assigned_driver = models.ForeignKey(
         User,
@@ -51,6 +54,7 @@ class Vehicle(models.Model):
         null=True,
         blank=True,
         related_name="assigned_vehicles",
+        verbose_name=_("Conductor asignado"),
         help_text=_("Piloto responsable (si aplica)."),
     )
 

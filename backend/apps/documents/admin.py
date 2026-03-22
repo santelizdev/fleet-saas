@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.contrib import admin
 from django.db import transaction
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
 
@@ -27,10 +28,18 @@ class InternalAttachmentAdminMixin:
 
 @admin.register(Attachment)
 class AttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, ModelAdmin):
-    list_display = ("id", "company", "storage_key", "mime_type", "size_bytes", "created_at")
+    list_display = ("id", "company_column", "storage_key", "mime_type", "size_bytes", "created_at_column")
     search_fields = ("storage_key", "original_name", "mime_type")
     list_filter = ("company", "mime_type")
     form_company_filters = {"company": "id"}
+
+    @display(description=_("Empresa"), ordering="company")
+    def company_column(self, obj):
+        return obj.company
+
+    @display(description=_("Creado"), ordering="created_at")
+    def created_at_column(self, obj):
+        return obj.created_at
 
 
 @admin.register(VehicleDocument)
@@ -38,7 +47,7 @@ class VehicleDocumentAdmin(CompanyScopedAdminMixin, ModelAdmin):
     """Organiza documentos del vehículo con foco en vencimientos."""
 
     form = VehicleDocumentAdminForm
-    list_display = ("vehicle", "type", "status_badge", "is_current_badge", "expiry_date", "support_preview_link")
+    list_display = ("vehicle_column", "type_column", "status_badge", "is_current_badge", "expiry_date_column", "support_preview_link")
     list_filter = ("company", "type", "status", "is_current", "expiry_date")
     search_fields = ("vehicle__plate", "vehicle__assigned_driver__name", "type", "notes")
     list_select_related = ("company", "vehicle", "vehicle__assigned_driver")
@@ -59,6 +68,18 @@ class VehicleDocumentAdmin(CompanyScopedAdminMixin, ModelAdmin):
         "vehicle": "company_id",
     }
 
+    @display(description=_("Vehículo"), ordering="vehicle__plate")
+    def vehicle_column(self, obj):
+        return obj.vehicle
+
+    @display(description=_("Tipo"), ordering="type")
+    def type_column(self, obj):
+        return obj.get_type_display()
+
+    @display(description=_("Fecha de vencimiento"), ordering="expiry_date")
+    def expiry_date_column(self, obj):
+        return obj.expiry_date
+
     @display(
         description="Estado",
         ordering="status",
@@ -77,7 +98,7 @@ class VehicleDocumentAdmin(CompanyScopedAdminMixin, ModelAdmin):
         label = "Sí" if obj.is_current else "Histórico"
         return format_html('<span class="fleet-badge fleet-badge-{}">{}</span>', tone, label)
 
-    @display(description="Soporte")
+    @display(description=_("Soporte"))
     def support_preview_link(self, obj):
         return "Disponible" if obj.support_attachment else "Sin adjunto"
 
@@ -103,7 +124,7 @@ class VehicleDocumentAdmin(CompanyScopedAdminMixin, ModelAdmin):
 
 @admin.register(VehicleDocumentAttachment)
 class VehicleDocumentAttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, ModelAdmin):
-    list_display = ("id", "company", "vehicle_document", "attachment", "created_at")
+    list_display = ("id", "company_column", "vehicle_document", "attachment", "created_at_column")
     list_filter = ("company",)
     fields = ("company", "vehicle_document", "attachment")
     form_company_filters = {
@@ -111,6 +132,14 @@ class VehicleDocumentAttachmentAdmin(InternalAttachmentAdminMixin, CompanyScoped
         "vehicle_document": "company_id",
         "attachment": "company_id",
     }
+
+    @display(description=_("Empresa"), ordering="company")
+    def company_column(self, obj):
+        return obj.company
+
+    @display(description=_("Creado"), ordering="created_at")
+    def created_at_column(self, obj):
+        return obj.created_at
 
     def formfield_for_foreignkey(self, db_field, request, **kwargs):
         formfield = super().formfield_for_foreignkey(db_field, request, **kwargs)
@@ -124,7 +153,7 @@ class DriverLicenseAdmin(CompanyScopedAdminMixin, ModelAdmin):
     """Agrupa licencias por vigencia y conductor."""
 
     form = DriverLicenseAdminForm
-    list_display = ("driver", "license_number", "status_badge", "is_current_badge", "expiry_date", "support_preview_link")
+    list_display = ("driver_column", "license_number_column", "status_badge", "is_current_badge", "expiry_date_column", "support_preview_link")
     list_filter = ("company", "status", "is_current", "expiry_date")
     search_fields = ("driver__name", "driver__email", "license_number", "category")
     list_select_related = ("company", "driver")
@@ -145,6 +174,18 @@ class DriverLicenseAdmin(CompanyScopedAdminMixin, ModelAdmin):
         "driver": "company_id",
     }
 
+    @display(description=_("Conductor"), ordering="driver__name")
+    def driver_column(self, obj):
+        return obj.driver
+
+    @display(description=_("Número de licencia"), ordering="license_number")
+    def license_number_column(self, obj):
+        return obj.license_number
+
+    @display(description=_("Fecha de vencimiento"), ordering="expiry_date")
+    def expiry_date_column(self, obj):
+        return obj.expiry_date
+
     @display(
         description="Estado",
         ordering="status",
@@ -163,7 +204,7 @@ class DriverLicenseAdmin(CompanyScopedAdminMixin, ModelAdmin):
         label = "Sí" if obj.is_current else "Histórico"
         return format_html('<span class="fleet-badge fleet-badge-{}">{}</span>', tone, label)
 
-    @display(description="Soporte")
+    @display(description=_("Soporte"))
     def support_preview_link(self, obj):
         return "Disponible" if obj.support_attachment else "Sin adjunto"
 
@@ -189,10 +230,18 @@ class DriverLicenseAdmin(CompanyScopedAdminMixin, ModelAdmin):
 
 @admin.register(DriverLicenseAttachment)
 class DriverLicenseAttachmentAdmin(InternalAttachmentAdminMixin, CompanyScopedAdminMixin, ModelAdmin):
-    list_display = ("id", "company", "driver_license", "attachment", "created_at")
+    list_display = ("id", "company_column", "driver_license", "attachment", "created_at_column")
     list_filter = ("company",)
     form_company_filters = {
         "company": "id",
         "driver_license": "company_id",
         "attachment": "company_id",
     }
+
+    @display(description=_("Empresa"), ordering="company")
+    def company_column(self, obj):
+        return obj.company
+
+    @display(description=_("Creado"), ordering="created_at")
+    def created_at_column(self, obj):
+        return obj.created_at

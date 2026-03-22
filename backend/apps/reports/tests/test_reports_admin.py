@@ -46,3 +46,5 @@ class ReportsAdminViewTest(TestCase):
         self.assertContains(response, "Centro de reportes operativos")
         self.assertContains(response, "Exportar costo por vehículo")
         self.assertContains(response, "Exportar resumen PDF")
+        self.assertContains(response, "fleet-kpi-grid-three")
+        self.assertContains(response, "Vehículos en alcance")

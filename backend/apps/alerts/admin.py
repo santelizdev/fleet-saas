@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from django.contrib import admin
 from django.urls import path, reverse
+from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
 
@@ -15,7 +16,7 @@ from .models import DocumentAlert, JobRun, MaintenanceAlert, Notification
 
 @admin.register(DocumentAlert)
 class DocumentAlertAdmin(CompanyScopedAdminMixin, ModelAdmin):
-    list_display = ("kind", "state_badge", "scheduled_for", "due_date", "linked_object")
+    list_display = ("kind_column", "state_badge", "scheduled_for_column", "due_date_column", "linked_object")
     list_filter = ("company", "kind", "state", "scheduled_for")
     search_fields = ("message", "vehicle_document__vehicle__plate", "driver_license__driver__name")
     list_select_related = ("company", "vehicle_document", "driver_license")
@@ -25,6 +26,18 @@ class DocumentAlertAdmin(CompanyScopedAdminMixin, ModelAdmin):
         "vehicle_document": "company_id",
         "driver_license": "company_id",
     }
+
+    @display(description=_("Tipo"), ordering="kind")
+    def kind_column(self, obj):
+        return obj.get_kind_display()
+
+    @display(description=_("Programada para"), ordering="scheduled_for")
+    def scheduled_for_column(self, obj):
+        return obj.scheduled_for
+
+    @display(description=_("Fecha de vencimiento"), ordering="due_date")
+    def due_date_column(self, obj):
+        return obj.due_date
 
     @display(description="Estado", label={"pending": "warning", "sent": "info", "acknowledged": "success", "resolved": "success"})
     def state_badge(self, obj):
@@ -41,7 +54,7 @@ class DocumentAlertAdmin(CompanyScopedAdminMixin, ModelAdmin):
 
 @admin.register(MaintenanceAlert)
 class MaintenanceAlertAdmin(CompanyScopedAdminMixin, ModelAdmin):
-    list_display = ("vehicle", "kind", "state_badge", "due_date", "due_km", "created_at")
+    list_display = ("vehicle_column", "kind_column", "state_badge", "due_date_column", "due_km_column", "created_at_column")
     list_filter = ("company", "kind", "state")
     search_fields = ("vehicle__plate", "maintenance_record_ref", "maintenance_record__id", "message")
     list_select_related = ("company", "vehicle", "maintenance_record")
@@ -51,6 +64,26 @@ class MaintenanceAlertAdmin(CompanyScopedAdminMixin, ModelAdmin):
         "vehicle": "company_id",
         "maintenance_record": "company_id",
     }
+
+    @display(description=_("Vehículo"), ordering="vehicle__plate")
+    def vehicle_column(self, obj):
+        return obj.vehicle
+
+    @display(description=_("Tipo"), ordering="kind")
+    def kind_column(self, obj):
+        return obj.get_kind_display()
+
+    @display(description=_("Fecha de vencimiento"), ordering="due_date")
+    def due_date_column(self, obj):
+        return obj.due_date
+
+    @display(description=_("Kilometraje de vencimiento"), ordering="due_km")
+    def due_km_column(self, obj):
+        return obj.due_km
+
+    @display(description=_("Creado"), ordering="created_at")
+    def created_at_column(self, obj):
+        return obj.created_at
 
     @display(description="Estado", label={"pending": "warning", "sent": "info", "acknowledged": "success", "resolved": "success"})
     def state_badge(self, obj):

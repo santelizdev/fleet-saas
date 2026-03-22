@@ -5,6 +5,7 @@ from __future__ import annotations
 from django.contrib import admin
 from django.db import transaction
 from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 from unfold.admin import ModelAdmin
 from unfold.decorators import display
 
@@ -28,13 +29,25 @@ class InternalAttachmentAdminMixin:
 
 @admin.register(ExpenseCategory)
 class ExpenseCategoryAdmin(CompanyScopedAdminMixin, ModelAdmin):
-    list_display = ("name", "company", "created_at")
+    list_display = ("name_column", "company_column", "created_at_column")
     list_filter = ("company",)
     search_fields = ("name",)
     form_company_filters = {"company": "id"}
 
     def has_module_permission(self, request):
         return request.user.is_superuser
+
+    @display(description=_("Nombre"), ordering="name")
+    def name_column(self, obj):
+        return obj.name
+
+    @display(description=_("Empresa"), ordering="company")
+    def company_column(self, obj):
+        return obj.company
+
+    @display(description=_("Creado"), ordering="created_at")
+    def created_at_column(self, obj):
+        return obj.created_at
 
 
 @admin.register(VehicleExpense)
@@ -43,13 +56,13 @@ class VehicleExpenseAdmin(CompanyScopedAdminMixin, ModelAdmin):
 
     form = VehicleExpenseAdminForm
     list_display = (
-        "expense_date",
-        "vehicle",
-        "category",
-        "amount_clp",
+        "expense_date_column",
+        "vehicle_column",
+        "category_column",
+        "amount_clp_column",
         "approval_badge",
         "payment_badge",
-        "reported_by",
+        "reported_by_column",
     )
     list_filter = ("company", "expense_date", "category", "approval_status", "payment_status")
     search_fields = ("invoice_number", "supplier", "vehicle__plate", "vehicle__assigned_driver__name")
@@ -70,6 +83,26 @@ class VehicleExpenseAdmin(CompanyScopedAdminMixin, ModelAdmin):
         "approved_by": "company_id",
         "paid_by": "company_id",
     }
+
+    @display(description=_("Fecha del gasto"), ordering="expense_date")
+    def expense_date_column(self, obj):
+        return obj.expense_date
+
+    @display(description=_("Vehículo"), ordering="vehicle__plate")
+    def vehicle_column(self, obj):
+        return obj.vehicle
+
+    @display(description=_("Categoría"), ordering="category__name")
+    def category_column(self, obj):
+        return obj.category or "Sin categoría"
+
+    @display(description=_("Monto CLP"), ordering="amount_clp")
+    def amount_clp_column(self, obj):
+        return obj.amount_clp
+
+    @display(description=_("Reportado por"), ordering="reported_by__name")
+    def reported_by_column(self, obj):
+        return obj.reported_by
 
     @display(
         description="Aprobación",

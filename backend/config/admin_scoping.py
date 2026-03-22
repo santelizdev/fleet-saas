@@ -55,9 +55,11 @@ class CompanyScopedAdminMixin:
 
         object_id = getattr(getattr(request, "resolver_match", None), "kwargs", {}).get("object_id")
         if object_id:
-            obj = self.get_object(request, object_id)
-            if obj is not None:
-                return getattr(obj, "company_id", None)
+            return (
+                self.model._default_manager.filter(pk=object_id)
+                .values_list(self.company_filter_lookup, flat=True)
+                .first()
+            )
         return None
 
     def _dynamic_company_fields(self):

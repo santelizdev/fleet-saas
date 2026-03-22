@@ -5,9 +5,38 @@ from django.utils.translation import gettext_lazy as _
 from .models import User
 
 
+UNFOLD_TEXT_INPUT_CSS = (
+    "border border-base-200 bg-white font-medium min-w-20 placeholder-base-400 "
+    "rounded-default shadow-xs text-font-default-light text-sm focus:outline-2 "
+    "focus:-outline-offset-2 focus:outline-primary-600 group-[.errors]:border-red-600 "
+    "focus:group-[.errors]:outline-red-600 dark:bg-base-900 dark:border-base-700 "
+    "dark:text-font-default-dark dark:group-[.errors]:border-red-500 "
+    "dark:focus:group-[.errors]:outline-red-500 dark:scheme-dark "
+    "group-[.primary]:border-transparent px-3 py-2 w-full max-w-2xl "
+)
+
+
 class UserAdminCreationForm(forms.ModelForm):
-    password1 = forms.CharField(label=_("Contraseña"), strip=False, widget=forms.PasswordInput)
-    password2 = forms.CharField(label=_("Confirmación de contraseña"), strip=False, widget=forms.PasswordInput)
+    password1 = forms.CharField(
+        label=_("Contraseña"),
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "class": UNFOLD_TEXT_INPUT_CSS,
+                "autocomplete": "new-password",
+            }
+        ),
+    )
+    password2 = forms.CharField(
+        label=_("Confirmación de contraseña"),
+        strip=False,
+        widget=forms.PasswordInput(
+            attrs={
+                "class": UNFOLD_TEXT_INPUT_CSS,
+                "autocomplete": "new-password",
+            }
+        ),
+    )
 
     class Meta:
         model = User
@@ -20,6 +49,13 @@ class UserAdminCreationForm(forms.ModelForm):
             "is_active": _("Activo"),
             "is_staff": _("Acceso al admin"),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field_name in ("password1", "password2"):
+            widget = self.fields[field_name].widget
+            widget.attrs["class"] = widget.attrs.get("class") or UNFOLD_TEXT_INPUT_CSS
+            widget.attrs.setdefault("autocomplete", "new-password")
 
     def clean_password2(self):
         password1 = self.cleaned_data.get("password1")

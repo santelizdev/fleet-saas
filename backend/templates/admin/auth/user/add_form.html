@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+{% load i18n %}
+
+{% block form_top %}
+  {% if is_popup %}
+    <p>{% translate "Ingresa los datos base y define la contraseña del conductor." %}</p>
+  {% else %}
+    <p>{% translate "Primero crea el usuario y su contraseña. Luego podrás editar más opciones." %}</p>
+  {% endif %}
+{% endblock %}

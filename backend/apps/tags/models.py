@@ -84,6 +84,7 @@ class TagImportBatch(models.Model):
     source_file_name = models.CharField(max_length=255, blank=True, default="")
     period_start = models.DateField(null=True, blank=True)
     period_end = models.DateField(null=True, blank=True)
+    total_rows = models.PositiveIntegerField(default=0)
     imported_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
     notes = models.TextField(blank=True, default="")
@@ -132,8 +133,12 @@ class TagTransit(models.Model):
     gate = models.ForeignKey(TollGate, null=True, blank=True, on_delete=models.SET_NULL, related_name="transits")
     vehicle = models.ForeignKey(Vehicle, null=True, blank=True, on_delete=models.SET_NULL, related_name="tag_transits")
     detected_plate = models.CharField(max_length=16, blank=True, default="")
+    tag_reference = models.CharField(max_length=64, blank=True, default="")
+    schedule_code = models.CharField(max_length=32, blank=True, default="")
+    invoice_reference = models.CharField(max_length=128, blank=True, default="")
     transit_at = models.DateTimeField()
     transit_date = models.DateField()
+    is_weekend = models.BooleanField(default=False)
     amount_clp = models.PositiveIntegerField(default=0)
     currency = models.CharField(max_length=8, default="CLP")
     match_status = models.CharField(max_length=16, choices=MATCH_CHOICES, default=MATCH_PENDING)
@@ -147,6 +152,7 @@ class TagTransit(models.Model):
             models.Index(fields=["company", "transit_date"]),
             models.Index(fields=["company", "vehicle", "transit_date"]),
             models.Index(fields=["company", "detected_plate"]),
+            models.Index(fields=["company", "is_weekend", "transit_date"]),
         ]
 
     def clean(self):
@@ -189,8 +195,12 @@ class TagCharge(models.Model):
     gate = models.ForeignKey(TollGate, null=True, blank=True, on_delete=models.SET_NULL, related_name="charges")
     vehicle = models.ForeignKey(Vehicle, null=True, blank=True, on_delete=models.SET_NULL, related_name="tag_charges")
     detected_plate = models.CharField(max_length=16, blank=True, default="")
+    tag_reference = models.CharField(max_length=64, blank=True, default="")
+    schedule_code = models.CharField(max_length=32, blank=True, default="")
+    invoice_reference = models.CharField(max_length=128, blank=True, default="")
     charge_date = models.DateField()
     billed_at = models.DateTimeField(null=True, blank=True)
+    is_weekend = models.BooleanField(default=False)
     amount_clp = models.PositiveIntegerField()
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default=STATUS_PENDING)
     notes = models.CharField(max_length=255, blank=True, default="")
@@ -203,6 +213,7 @@ class TagCharge(models.Model):
             models.Index(fields=["company", "charge_date"]),
             models.Index(fields=["company", "vehicle", "charge_date"]),
             models.Index(fields=["company", "status"]),
+            models.Index(fields=["company", "is_weekend", "charge_date"]),
         ]
 
     def clean(self):

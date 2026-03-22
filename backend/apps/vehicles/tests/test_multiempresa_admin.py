@@ -79,3 +79,21 @@ class MultiempresaAdminIsolationTest(TestCase):
         vehicle = Vehicle(company=self.company_a, plate="CC33CC", assigned_driver=office_user)
         with self.assertRaisesMessage(ValidationError, "rol de conductor"):
             vehicle.full_clean()
+
+    def test_vehicle_form_uses_spanish_labels(self):
+        self.client.force_login(self.superuser)
+        vehicle = Vehicle.objects.create(company=self.company_a, plate="CC33CC")
+
+        response = self.client.get(reverse("admin:vehicles_vehicle_change", args=[vehicle.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Empresa")
+        self.assertContains(response, "Sucursal")
+        self.assertContains(response, "Marca")
+        self.assertContains(response, "Modelo")
+        self.assertContains(response, "Año")
+        self.assertContains(response, "Número de motor")
+        self.assertContains(response, "Kilometraje actual")
+        self.assertContains(response, "Conductor asignado")
+        self.assertNotContains(response, ">Company<")
+        self.assertNotContains(response, ">Brand<")

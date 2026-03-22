@@ -2,6 +2,7 @@ from django.core.exceptions import ValidationError
 from django.test import TestCase
 from django.urls import reverse
 
+from django.contrib import admin as django_admin
 from django.contrib.admin.sites import AdminSite
 from django.test import RequestFactory
 
@@ -9,6 +10,8 @@ from apps.accounts.admin import DriverAdmin, UserAdmin
 from apps.accounts.forms import UserAdminCreationForm
 from apps.accounts.models import Driver, Role, User, UserRole
 from apps.companies.models import Company
+from apps.vehicles.admin import VehicleAdmin
+from apps.vehicles.models import Vehicle
 
 
 class UserAdminFormTest(TestCase):
@@ -50,6 +53,10 @@ class UserAdminFormTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Confirmación de contraseña")
         self.assertContains(response, "Empresa")
+        self.assertContains(response, "Ingresa los datos base y define la contraseña del conductor.")
+        self.assertContains(response, 'name="password1"')
+        self.assertContains(response, 'name="password2"')
+        self.assertContains(response, "border-base-200")
 
     def test_user_admin_excludes_driver_profiles(self):
         superuser = User.objects.create_superuser(
@@ -102,6 +109,23 @@ class UserAdminFormTest(TestCase):
         ids = list(queryset.values_list("id", flat=True))
         self.assertIn(driver.id, ids)
         self.assertNotIn(office_user.id, ids)
+
+    def test_vehicle_driver_widget_points_to_driver_admin_urls(self):
+        superuser = User.objects.create_superuser(
+            email="superadmin-widget@test.local",
+            password="Secret123!",
+            name="Super Admin Widget",
+            company=self.company,
+        )
+        request = self.factory.get("/admin/vehicles/vehicle/add/")
+        request.user = superuser
+
+        formfield = VehicleAdmin(Vehicle, django_admin.site).formfield_for_dbfield(
+            Vehicle._meta.get_field("assigned_driver"),
+            request,
+        )
+
+        self.assertEqual(formfield.widget.rel.model, Driver)
 
 
 class UserRoleValidationTest(TestCase):

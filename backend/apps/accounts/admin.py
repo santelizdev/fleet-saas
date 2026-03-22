@@ -74,6 +74,22 @@ class BaseFleetUserAdmin(CompanyScopedAdminMixin, ModelAdmin, DjangoUserAdmin):
             },
         ),
     )
+    popup_add_fieldsets = (
+        (
+            _("Identificación"),
+            {
+                "classes": ("wide",),
+                "fields": ("email", "name", "phone", "company"),
+            },
+        ),
+        (
+            _("Acceso"),
+            {
+                "classes": ("wide",),
+                "fields": ("password1", "password2", "is_active", "is_staff"),
+            },
+        ),
+    )
 
     readonly_fields = ("created_at",)
     form_company_filters = {
@@ -104,6 +120,14 @@ class BaseFleetUserAdmin(CompanyScopedAdminMixin, ModelAdmin, DjangoUserAdmin):
     def created_at_column(self, obj):
         return obj.created_at
 
+    def get_fieldsets(self, request, obj=None):
+        if obj is None:
+            is_popup = bool(request.GET.get("_popup") or request.POST.get("_popup"))
+            if is_popup:
+                return self.popup_add_fieldsets
+            return self.add_fieldsets
+        return super().get_fieldsets(request, obj)
+
 @admin.register(User)
 class UserAdmin(BaseFleetUserAdmin):
     """Admin de usuarios internos del sistema, excluyendo conductores operativos."""
@@ -115,6 +139,23 @@ class UserAdmin(BaseFleetUserAdmin):
 @admin.register(Driver)
 class DriverAdmin(BaseFleetUserAdmin):
     """Admin operativo separado para conductores/pilotos."""
+
+    popup_add_fieldsets = (
+        (
+            _("Conductor"),
+            {
+                "classes": ("wide",),
+                "fields": ("email", "name", "phone", "company"),
+            },
+        ),
+        (
+            _("Acceso"),
+            {
+                "classes": ("wide",),
+                "fields": ("password1", "password2", "is_active"),
+            },
+        ),
+    )
 
     def get_queryset(self, request):
         return super().get_queryset(request).drivers()
